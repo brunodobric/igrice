@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Igrice</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background-attachment: fixed;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #fff;
+    }
+
+    /* fixed header: title + game menu always at the same height */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1rem;
+      background: rgba(18, 26, 46, 0.82);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 2rem 1.5rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #e94560, #0f3460, #53d8fb);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s infinite linear;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 0% }
+      100% { background-position: 200% }
+    }
+
+    /* ---------- Game navigation ---------- */
+    .game-nav {
+      display: flex;
+      gap: 0.6rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 2rem;
+      padding: 0.35rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .game-nav button {
+      padding: 0.55rem 1.4rem;
+      border-radius: 2rem;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.65);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .game-nav button.active {
+      background: linear-gradient(135deg, #e94560, #53d8fb);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(83,216,251,0.3);
+    }
+
+    /* two-column layout: options/instructions left, game board right */
+    .game {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 2.5rem;
+    }
+    .game.hidden { display: none; }
+
+    .game-side {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      width: 260px;
+      flex-shrink: 0;
+    }
+
+    .game-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    /* inside the side panel: stat cards stack vertically & fill the column */
+    .game-side .scoreboard {
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+    }
+    .game-side .score-card { min-width: 0; width: 100%; }
+    .game-side .controls { width: 100%; flex-direction: column; }
+    .game-side .controls button { width: 100%; }
+    .game-side .t-legend { max-width: none; width: 100%; text-align: left; }
+    .game-side #m-levels,
+    .game-side #sky-levels { width: 100%; justify-content: center; flex-wrap: wrap; }
+    .game-side #m-levels button,
+    .game-side #sky-levels button { padding: 0.5rem 0.9rem; }
+
+    /* ---------- Shared cards ---------- */
+    .scoreboard {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .score-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 1rem;
+      padding: 0.75rem 1.5rem;
+      text-align: center;
+      min-width: 90px;
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s;
+    }
+
+    .score-card.active {
+      border-color: #53d8fb;
+      box-shadow: 0 0 16px rgba(83,216,251,0.3);
+      transform: scale(1.06);
+    }
+
+    .score-card .label {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 0.25rem;
+    }
+
+    .score-card .symbol {
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-card.x-card .symbol { color: #e94560; }
+    .score-card.o-card .symbol { color: #53d8fb; }
+    .score-card.draw-card .symbol { color: #f0a500; font-size: 1.1rem; }
+    .score-card.time-card .symbol { color: #53d8fb; }
+    .score-card.best-card .symbol { color: #f0a500; }
+
+    .score-card .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .score-card .value.mono {
+      font-variant-numeric: tabular-nums;
+      font-family: 'Consolas', 'Segoe UI', monospace;
+    }
+
+    .status-bar {
+      font-size: 1.15rem;
+      letter-spacing: 0.05em;
+      opacity: 0.85;
+      height: 1.5em;
+      text-align: center;
+      transition: opacity 0.3s;
+    }
+
+    .status-bar .highlight-x { color: #e94560; font-weight: 700; }
+    .status-bar .highlight-o { color: #53d8fb; font-weight: 700; }
+
+    /* ---------- Tic-tac-toe board ---------- */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 1.5rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .cell {
+      width: clamp(74px, 27vw, 130px);
+      height: clamp(74px, 27vw, 130px);
+      border-radius: 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: clamp(2rem, 10vw, 3.6rem);
+      font-weight: 900;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell:hover:not(.taken) {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.04);
+    }
+
+    .cell.taken { cursor: default; }
+
+    .cell.x {
+      color: #e94560;
+      border-color: rgba(233,69,96,0.4);
+      background: rgba(233,69,96,0.08);
+    }
+
+    .cell.o {
+      color: #53d8fb;
+      border-color: rgba(83,216,251,0.4);
+      background: rgba(83,216,251,0.08);
+    }
+
+    .cell.winner { animation: pulse-win 0.6s ease-in-out infinite alternate; }
+
+    .cell.x.winner {
+      background: rgba(233,69,96,0.2);
+      border-color: #e94560;
+      box-shadow: 0 0 20px rgba(233,69,96,0.5);
+    }
+
+    .cell.o.winner {
+      background: rgba(83,216,251,0.2);
+      border-color: #53d8fb;
+      box-shadow: 0 0 20px rgba(83,216,251,0.5);
+    }
+
+    @keyframes pulse-win {
+      from { transform: scale(1); }
+      to   { transform: scale(1.07); }
+    }
+
+    .cell.pop, .t-cell.pop {
+      animation: pop 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(0.5); opacity: 0.4; }
+      70%  { transform: scale(1.12); }
+      100% { transform: scale(1);   opacity: 1;   }
+    }
+
+    /* ---------- Tango board ---------- */
+    .t-board {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(6, 68px);
+      grid-template-rows: repeat(6, 68px);
+      gap: 7px;
+      padding: 1.2rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .t-cell {
+      width: 68px;
+      height: 68px;
+      border-radius: 0.7rem;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 2.2rem;
+      line-height: 1;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      user-select: none;
+    }
+
+    .t-cell:hover:not(.given) {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    .t-cell.given {
+      cursor: default;
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    .t-cell.sun  { color: #f0a500; }
+    .t-cell.moon { color: #53d8fb; }
+
+    .t-cell.error {
+      border-color: #e94560;
+      box-shadow: 0 0 12px rgba(233,69,96,0.45);
+      background: rgba(233,69,96,0.12);
+    }
+
+    .t-cell.solved {
+      border-color: rgba(83,216,251,0.6);
+      box-shadow: 0 0 14px rgba(83,216,251,0.35);
+    }
+
+    /* constraint markers between cells */
+    .t-marker {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 300;
+      background: #16213e;
+      border: 1.5px solid rgba(255,255,255,0.55);
+      color: #fff;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .t-marker.bad {
+      border-color: #e94560;
+      color: #e94560;
+      box-shadow: 0 0 10px rgba(233,69,96,0.5);
+    }
+
+    .t-legend {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    .t-legend b { color: #fff; opacity: 1; }
+
+    .t-legend ul {
+      margin: 0.45rem 0 0;
+      padding-left: 1.1rem;
+      list-style: none;
+    }
+
+    .t-legend li { margin: 0.2rem 0; }
+    .t-legend li::before {
+      content: '›';
+      margin-right: 0.4rem;
+      opacity: 0.5;
+    }
+
+    .score-card.mine-card .symbol { color: #e94560; }
+
+    /* ---------- Minolovac board ---------- */
+    .m-board {
+      display: grid;
+      gap: 4px;
+      padding: 1rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --m-size: 34px;
+    }
+
+    .m-cell {
+      width: var(--m-size);
+      height: var(--m-size);
+      border-radius: 0.35rem;
+      background: rgba(255,255,255,0.09);
+      border: 1px solid rgba(255,255,255,0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: calc(var(--m-size) * 0.5);
+      font-weight: 800;
+      line-height: 1;
+      user-select: none;
+      transition: background 0.1s, transform 0.05s;
+    }
+
+    .m-cell:hover:not(.revealed) {
+      background: rgba(255,255,255,0.18);
+      transform: scale(1.06);
+    }
+
+    .m-cell.revealed {
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.07);
+      cursor: default;
+    }
+
+    .m-cell.flag { color: #f0a500; }
+
+    .m-cell.mine.revealed { background: rgba(233,69,96,0.15); }
+    .m-cell.exploded {
+      background: rgba(233,69,96,0.55) !important;
+      border-color: #e94560;
+      box-shadow: 0 0 12px rgba(233,69,96,0.6);
+    }
+    .m-cell.wrong { background: rgba(233,69,96,0.12); }
+
+    /* number colours */
+    .m-cell.n1 { color: #53d8fb; }
+    .m-cell.n2 { color: #43d17a; }
+    .m-cell.n3 { color: #e94560; }
+    .m-cell.n4 { color: #b57bff; }
+    .m-cell.n5 { color: #f0a500; }
+    .m-cell.n6 { color: #2fd7c4; }
+    .m-cell.n7 { color: #ff8fab; }
+    .m-cell.n8 { color: #c9c9c9; }
+
+    .score-card.sky-card .symbol { color: #53d8fb; }
+
+    /* ---------- Neboderi (Skyscrapers) board ---------- */
+    .sky-board {
+      display: grid;
+      grid-template-columns: repeat(7, 62px);   /* N + 2 = 7 */
+      grid-template-rows: repeat(7, 62px);
+      gap: 5px;
+      padding: 1.2rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .sky-corner { }
+
+    .sky-clue {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #f0a500;
+      opacity: 0.85;
+      user-select: none;
+    }
+
+    .sky-clue.bad {
+      color: #e94560;
+      opacity: 1;
+      text-shadow: 0 0 10px rgba(233,69,96,0.6);
+    }
+
+    .sky-cell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 0.6rem;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #fff;
+      user-select: none;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+
+    .sky-cell:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    .sky-fill {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 0;
+      background: linear-gradient(to top, #0f3460, #53d8fb);
+      opacity: 0.5;
+      z-index: 0;
+      transition: height 0.2s;
+    }
+
+    .sky-cell span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .sky-cell.error {
+      border-color: #e94560;
+      box-shadow: 0 0 12px rgba(233,69,96,0.45);
+    }
+
+    .sky-cell.solved {
+      border-color: rgba(83,216,251,0.6);
+      box-shadow: 0 0 14px rgba(83,216,251,0.35);
+    }
+
+    /* touch ergonomics: no double-tap zoom, no long-press callout / grey flash */
+    .cell, .t-cell, .m-cell, .sky-cell {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    /* ---------- Controls / buttons ---------- */
+    .controls {
+      display: flex;
+      gap: 1rem;
+    }
+
+    button {
+      padding: 0.65rem 1.6rem;
+      border-radius: 2rem;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    button:active { transform: scale(0.96); }
+
+    .btn-restart {
+      background: linear-gradient(135deg, #e94560, #c62a47);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(233,69,96,0.4);
+    }
+
+    .btn-restart:hover {
+      box-shadow: 0 6px 20px rgba(233,69,96,0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-reset {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn-reset:hover {
+      background: rgba(255,255,255,0.18);
+      transform: translateY(-1px);
+    }
+
+    /* ---------- Overlays ---------- */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 100;
+    }
+
+    .overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .result-card {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 2rem;
+      padding: 2.5rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transform: scale(0.85);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .overlay.visible .result-card {
+      transform: scale(1);
+    }
+
+    .result-card .emoji {
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-card h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-card p {
+      opacity: 0.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-card .big-time {
+      font-size: 2.4rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: #53d8fb;
+      margin-bottom: 0.3rem;
+    }
+
+    .result-card .record-badge {
+      display: inline-block;
+      color: #f0a500;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      margin-bottom: 1.2rem;
+    }
+
+    .result-card button {
+      font-size: 1rem;
+      padding: 0.8rem 2.2rem;
+    }
+
+    /* stack back into one column on narrower screens */
+    @media (max-width: 900px) {
+      .game { flex-direction: column; align-items: center; }
+      .game-side { width: auto; max-width: 420px; }
+      .game-side .scoreboard { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+      .game-side .score-card { width: auto; min-width: 90px; }
+      .game-side .controls { flex-direction: row; }
+      .game-side .controls button { width: auto; }
+      .game-side .t-legend { text-align: center; }
+    }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 560px) {
+      .topbar { padding: 0.8rem 0.5rem; gap: 0.7rem; }
+      h1 { font-size: 1.7rem; }
+      .game-nav { flex-wrap: wrap; justify-content: center; gap: 0.35rem; padding: 0.3rem; }
+      .game-nav button { padding: 0.45rem 0.85rem; font-size: 0.78rem; letter-spacing: 0.03em; }
+      .container { padding: 1rem 0.5rem; }
+      .game { gap: 1.25rem; }
+      .t-board, .sky-board { padding: 0.9rem; gap: 5px; }
+      .m-board { padding: 0.7rem; }
+      .result-card { padding: 1.8rem 1.4rem; max-width: 90vw; }
+      .result-card .emoji { font-size: 2.6rem; }
+      .result-card h2 { font-size: 1.4rem; }
+      .result-card .big-time { font-size: 1.9rem; }
+    }
+
+    @media (max-width: 420px) {
+      h1 { font-size: 1.5rem; }
+      .board { gap: 8px; padding: 1rem; }
+      .t-marker { width: 20px; height: 20px; font-size: 0.95rem; font-weight: 300; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1 id="main-title">Igrice</h1>
+
+  <nav class="game-nav">
+    <button data-game="ttt" class="active">Križić Kružić</button>
+    <button data-game="tango">Tango</button>
+    <button data-game="mines">Minolovac</button>
+    <button data-game="sky">Neboderi</button>
+  </nav>
+</header>
+
+<main class="container">
+  <!-- ===================== KRIŽIĆ KRUŽIĆ ===================== -->
+  <section id="game-ttt" class="game">
+    <div class="game-side">
+      <div class="scoreboard">
+        <div class="score-card x-card" id="card-x">
+          <div class="label">Igrač 1</div>
+          <div class="symbol">✕</div>
+          <div class="value" id="score-x">0</div>
+        </div>
+        <div class="score-card draw-card" id="card-draw">
+          <div class="label">Remi</div>
+          <div class="symbol">—</div>
+          <div class="value" id="score-draw">0</div>
+        </div>
+        <div class="score-card o-card" id="card-o">
+          <div class="label">Igrač 2</div>
+          <div class="symbol">○</div>
+          <div class="value" id="score-o">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="status-bar" id="status"></div>
+      <div class="board" id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+      </div>
+    </div>
+
+    <div class="game-side">
+      <div class="t-legend">
+        Dva igrača se izmjenjuju. Poreda li netko tri svoja znaka u
+        redak, stupac ili dijagonalu — pobjeđuje.
+      </div>
+
+      <div class="controls">
+        <button class="btn-restart" id="btn-restart">Nova igra</button>
+        <button class="btn-reset"   id="btn-reset">Resetiraj bodove</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TANGO ===================== -->
+  <section id="game-tango" class="game hidden">
+    <div class="game-side">
+      <div class="scoreboard">
+        <div class="score-card time-card">
+          <div class="label">Vrijeme</div>
+          <div class="symbol">⏱</div>
+          <div class="value mono" id="t-time">00:00</div>
+        </div>
+        <div class="score-card best-card">
+          <div class="label">Rekord</div>
+          <div class="symbol">★</div>
+          <div class="value mono" id="t-best">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="status-bar" id="t-status"></div>
+      <div class="t-board" id="t-board"></div>
+    </div>
+
+    <div class="game-side">
+      <div class="t-legend">
+        Popuni mrežu sa <b style="color:#f0a500">☀ Suncem</b> i <b style="color:#53d8fb">☾ Mjesecom</b>.
+        <ul>
+          <li>po 3 od svakog u retku i stupcu</li>
+          <li>najviše 2 ista uzastopno</li>
+          <li><b>=</b> susjedi jednaki, <b>×</b> različiti</li>
+          <li>lijevi klik mijenja znak, desni stavlja Mjesec</li>
+        </ul>
+      </div>
+
+      <div class="controls">
+        <button class="btn-restart" id="t-new">Nova zagonetka</button>
+        <button class="btn-reset"   id="t-clear">Očisti</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MINOLOVAC ===================== -->
+  <section id="game-mines" class="game hidden">
+    <div class="game-side">
+      <div class="scoreboard">
+        <div class="score-card mine-card">
+          <div class="label">Mine</div>
+          <div class="symbol">💣</div>
+          <div class="value mono" id="m-mines">0</div>
+        </div>
+        <div class="score-card time-card">
+          <div class="label">Vrijeme</div>
+          <div class="symbol">⏱</div>
+          <div class="value mono" id="m-time">00:00</div>
+        </div>
+        <div class="score-card best-card">
+          <div class="label">Rekord</div>
+          <div class="symbol">★</div>
+          <div class="value mono" id="m-best">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="status-bar" id="m-status"></div>
+      <div class="m-board" id="m-board"></div>
+    </div>
+
+    <div class="game-side">
+      <div class="game-nav" id="m-levels">
+        <button data-level="easy" class="active">Lako</button>
+        <button data-level="medium">Srednje</button>
+        <button data-level="hard">Teško</button>
+      </div>
+
+      <div class="t-legend">
+        Očisti sva polja bez mina.
+        <ul>
+          <li>lijevi klik otkriva polje</li>
+          <li>desni klik (ili način <b>🚩</b>) stavlja zastavicu</li>
+          <li>broj = koliko mina dodiruje polje</li>
+          <li>prvi klik je uvijek siguran</li>
+        </ul>
+      </div>
+
+      <div class="controls">
+        <button class="btn-restart" id="m-new">Nova igra</button>
+        <button class="btn-reset"   id="m-flag">Način: Otkrij</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NEBODERI ===================== -->
+  <section id="game-sky" class="game hidden">
+    <div class="game-side">
+      <div class="scoreboard">
+        <div class="score-card sky-card">
+          <div class="label">Vrijeme</div>
+          <div class="symbol">⏱</div>
+          <div class="value mono" id="sky-time">00:00</div>
+        </div>
+        <div class="score-card best-card">
+          <div class="label">Rekord</div>
+          <div class="symbol">★</div>
+          <div class="value mono" id="sky-best">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-main">
+      <div class="status-bar" id="sky-status"></div>
+      <div class="sky-board" id="sky-board"></div>
+    </div>
+
+    <div class="game-side">
+      <div class="game-nav" id="sky-levels">
+        <button data-mode="classic" class="active">KLASIČNO</button>
+        <button data-mode="pro">PRO</button>
+      </div>
+
+      <div class="t-legend">
+        Popuni mrežu visinama <b>1–5</b> nebodera.
+        <ul>
+          <li>u svakom retku i stupcu svaka visina točno jednom</li>
+          <li>broj uz rub = koliko je nebodera vidljivo iz tog smjera</li>
+          <li>viši neboder skriva sve niže iza sebe</li>
+          <li>lijevi klik povećava, desni smanjuje visinu</li>
+        </ul>
+        <div style="margin-top:0.5rem">
+          <b>KLASIČNO</b> — uvijek rješivo logikom bez pogađanja.<br>
+          <b>PRO</b> — jedinstveno rješenje, ali ponekad traži pogađanje.
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-restart" id="sky-new">Nova zagonetka</button>
+        <button class="btn-reset"   id="sky-clear">Očisti</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Tic-tac-toe overlay -->
+<div class="overlay" id="overlay">
+  <div class="result-card">
+    <div class="emoji" id="result-emoji"></div>
+    <h2 id="result-title"></h2>
+    <p id="result-sub"></p>
+    <button class="btn-restart" id="btn-play-again">Igraj opet</button>
+  </div>
+</div>
+
+<!-- Tango overlay -->
+<div class="overlay" id="t-overlay">
+  <div class="result-card">
+    <div class="emoji">🎉</div>
+    <h2>Riješeno!</h2>
+    <div class="big-time" id="t-final-time">00:00</div>
+    <div class="record-badge" id="t-record-badge"></div>
+    <p id="t-final-sub">Bravo, zagonetka je riješena!</p>
+    <button class="btn-restart" id="t-play-again">Nova zagonetka</button>
+  </div>
+</div>
+
+<!-- Minolovac overlay -->
+<div class="overlay" id="m-overlay">
+  <div class="result-card">
+    <div class="emoji" id="m-result-emoji">🎉</div>
+    <h2 id="m-result-title">Pobjeda!</h2>
+    <div class="big-time" id="m-final-time">00:00</div>
+    <div class="record-badge" id="m-record-badge"></div>
+    <p id="m-final-sub"></p>
+    <button class="btn-restart" id="m-play-again">Nova igra</button>
+  </div>
+</div>
+
+<!-- Neboderi overlay -->
+<div class="overlay" id="sky-overlay">
+  <div class="result-card">
+    <div class="emoji">🏙️</div>
+    <h2>Riješeno!</h2>
+    <div class="big-time" id="sky-final-time">00:00</div>
+    <div class="record-badge" id="sky-record-badge"></div>
+    <p id="sky-final-sub">Bravo, grad je izgrađen!</p>
+    <button class="btn-restart" id="sky-play-again">Nova zagonetka</button>
+  </div>
+</div>
+
+<script>
+/* ======================================================================
+   GAME SWITCHER
+   ====================================================================== */
+const navButtons = document.querySelectorAll('nav.game-nav button');
+const sections   = {
+  ttt:   document.getElementById('game-ttt'),
+  tango: document.getElementById('game-tango'),
+  mines: document.getElementById('game-mines'),
+  sky:   document.getElementById('game-sky')
+};
+navButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const game = btn.dataset.game;
+    navButtons.forEach(b => b.classList.toggle('active', b === btn));
+    Object.entries(sections).forEach(([k, el]) => el.classList.toggle('hidden', k !== game));
+    Tango[game === 'tango' ? 'onEnter' : 'onLeave']();
+    Mines[game === 'mines' ? 'onEnter' : 'onLeave']();
+    Sky[game === 'sky' ? 'onEnter' : 'onLeave']();
+  });
+});
+
+/* ======================================================================
+   TOUCH / RESPONSIVE HELPERS  (shared by all games)
+   ====================================================================== */
+// Largest cell size (px) that lets a `cols`-wide board fit the viewport width.
+function boardFit(cols, maxCell, gap, pad, minCell) {
+  const avail = Math.min(window.innerWidth - 20, 600);
+  const s = Math.floor((avail - (cols - 1) * gap - 2 * pad) / cols);
+  return Math.max(minCell, Math.min(maxCell, s));
+}
+
+// Long-press = the "right-click" secondary action on touch devices. If the
+// browser fires its own contextmenu on long-press (e.g. Android), we cancel
+// ours so the module's contextmenu handler acts instead — avoids a double fire.
+function addLongPress(el, action, delay = 600) {
+  let timer = null, moved = false, done = false, sx = 0, sy = 0;
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    moved = false; done = false;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    timer = setTimeout(() => { if (!moved) { done = true; action(); } }, delay);
+  }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) { moved = true; clearTimeout(timer); }
+  }, { passive: true });
+  el.addEventListener('touchend', e => { clearTimeout(timer); if (done) e.preventDefault(); });
+  el.addEventListener('touchcancel', () => clearTimeout(timer));
+  el.addEventListener('contextmenu', () => clearTimeout(timer));
+}
+
+/* ======================================================================
+   KRIŽIĆ KRUŽIĆ
+   ====================================================================== */
+const WINS = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+let board   = Array(9).fill(null);
+let current = 'X';
+let gameOver = false;
+let scores  = { X: 0, O: 0, D: 0 };
+
+const cells      = document.querySelectorAll('#board .cell');
+const statusEl   = document.getElementById('status');
+const scoreX     = document.getElementById('score-x');
+const scoreO     = document.getElementById('score-o');
+const scoreDraw  = document.getElementById('score-draw');
+const overlay    = document.getElementById('overlay');
+const resultEmoji = document.getElementById('result-emoji');
+const resultTitle = document.getElementById('result-title');
+const resultSub   = document.getElementById('result-sub');
+
+function setStatus() {
+  if (current === 'X') {
+    statusEl.innerHTML = `Na redu je <span class="highlight-x">Igrač 1 (✕)</span>`;
+  } else {
+    statusEl.innerHTML = `Na redu je <span class="highlight-o">Igrač 2 (○)</span>`;
+  }
+}
+
+function checkWinner() {
+  for (const [a,b,c] of WINS) {
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return { winner: board[a], line: [a,b,c] };
+    }
+  }
+  if (board.every(v => v)) return { winner: 'draw' };
+  return null;
+}
+
+function highlightWinners(line) {
+  line.forEach(i => cells[i].classList.add('winner'));
+}
+
+function showOverlay(winner) {
+  if (winner === 'draw') {
+    resultEmoji.textContent = '🤝';
+    resultTitle.textContent = 'Remi!';
+    resultSub.textContent   = 'Nitko nije pobijedio ovaj put.';
+  } else {
+    const name = winner === 'X' ? 'Igrač 1 (✕)' : 'Igrač 2 (○)';
+    resultEmoji.textContent = winner === 'X' ? '🎉' : '🏆';
+    resultTitle.textContent = `Pobijedio ${name}!`;
+    resultSub.textContent   = 'Čestitke!';
+  }
+  overlay.classList.add('visible');
+}
+
+function updateScoreCards() {
+  scoreX.textContent    = scores.X;
+  scoreO.textContent    = scores.O;
+  scoreDraw.textContent = scores.D;
+}
+
+function setActiveCard() {
+  document.getElementById('card-x').classList.toggle('active', current === 'X');
+  document.getElementById('card-o').classList.toggle('active', current === 'O');
+  document.getElementById('card-draw').classList.remove('active');
+}
+
+cells.forEach(cell => {
+  cell.addEventListener('click', () => {
+    const i = +cell.dataset.index;
+    if (gameOver || board[i]) return;
+
+    board[i] = current;
+    cell.textContent = current === 'X' ? '✕' : '○';
+    cell.classList.add(current.toLowerCase(), 'taken', 'pop');
+    cell.addEventListener('animationend', () => cell.classList.remove('pop'), { once: true });
+
+    const result = checkWinner();
+    if (result) {
+      gameOver = true;
+      if (result.winner === 'draw') {
+        scores.D++;
+        statusEl.innerHTML = `<span style="color:#f0a500;font-weight:700">Remi!</span>`;
+      } else {
+        highlightWinners(result.line);
+        const name = result.winner === 'X' ? 'Igrač 1 (✕)' : 'Igrač 2 (○)';
+        scores[result.winner]++;
+        statusEl.innerHTML = result.winner === 'X'
+          ? `<span class="highlight-x">${name} pobijedio!</span>`
+          : `<span class="highlight-o">${name} pobijedio!</span>`;
+      }
+      updateScoreCards();
+      setTimeout(() => showOverlay(result.winner), 700);
+      return;
+    }
+
+    current = current === 'X' ? 'O' : 'X';
+    setStatus();
+    setActiveCard();
+  });
+});
+
+function resetBoard() {
+  board    = Array(9).fill(null);
+  current  = 'X';
+  gameOver = false;
+  cells.forEach(c => {
+    c.textContent = '';
+    c.className   = 'cell';
+  });
+  overlay.classList.remove('visible');
+  setStatus();
+  setActiveCard();
+}
+
+document.getElementById('btn-restart').addEventListener('click', resetBoard);
+document.getElementById('btn-play-again').addEventListener('click', resetBoard);
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  scores = { X: 0, O: 0, D: 0 };
+  updateScoreCards();
+  resetBoard();
+});
+
+setStatus();
+setActiveCard();
+
+/* ======================================================================
+   TANGO
+   ====================================================================== */
+const Tango = (() => {
+  const N = 6, NEED = 3;          // 6x6, 3 of each per row/col
+  const SUN = 1, MOON = 2;
+  const GLYPH = { [SUN]: '☀', [MOON]: '☾' };
+  const BEST_KEY = 'tango-best-ms';
+
+  const idx = (r, c) => r * N + c;
+  const conKey = (a, b) => a < b ? a + '-' + b : b + '-' + a;
+  const shuffle = arr => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // DOM
+  const boardEl   = document.getElementById('t-board');
+  const timeEl    = document.getElementById('t-time');
+  const bestEl    = document.getElementById('t-best');
+  const statusEl  = document.getElementById('t-status');
+  const overlayEl = document.getElementById('t-overlay');
+  const finalTime = document.getElementById('t-final-time');
+  const recordEl  = document.getElementById('t-record-badge');
+  const finalSub  = document.getElementById('t-final-sub');
+
+  // State
+  let cellEls = [];              // 36 cell divs
+  let markers = [];              // {a, b, type, el}
+  let conMap  = {};              // "a-b" -> '=' | 'x'
+  let given   = new Array(N * N).fill(0);
+  let values  = new Array(N * N).fill(0);
+  let solved  = false;
+  let best    = null;
+
+  // Timer
+  let started = false, running = false, stamp = 0, accrued = 0, ticker = null;
+
+  function elapsed() { return accrued + (running ? Date.now() - stamp : 0); }
+  function fmt(ms) {
+    const s = Math.floor(ms / 1000);
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function renderTime() { timeEl.textContent = fmt(elapsed()); }
+  function startTimer() {
+    if (running || solved) return;
+    started = true; running = true; stamp = Date.now();
+    ticker = setInterval(renderTime, 250);
+  }
+  function pauseTimer() {
+    if (!running) return;
+    accrued += Date.now() - stamp; running = false;
+    clearInterval(ticker); ticker = null;
+  }
+  function resumeTimer() {
+    if (running || solved || !started) return;
+    running = true; stamp = Date.now();
+    ticker = setInterval(renderTime, 250);
+  }
+  function resetTimer() {
+    clearInterval(ticker); ticker = null;
+    started = false; running = false; accrued = 0; stamp = 0;
+    renderTime();
+  }
+
+  /* ---------- Solver helpers ---------- */
+  // Validity of placing value v at (r,c) given board b + running counts.
+  function ok(b, rowCnt, colCnt, r, c, v, cons) {
+    if (rowCnt[r][v] >= NEED) return false;
+    if (colCnt[c][v] >= NEED) return false;
+    // no three in a row (triple ending here)
+    if (c >= 2 && b[idx(r, c - 1)] === v && b[idx(r, c - 2)] === v) return false;
+    if (r >= 2 && b[idx(r - 1, c)] === v && b[idx(r - 2, c)] === v) return false;
+    // constraints with already-filled earlier neighbours
+    if (cons) {
+      if (c > 0) {
+        const t = cons[conKey(idx(r, c - 1), idx(r, c))];
+        const nv = b[idx(r, c - 1)];
+        if (t && nv) { if (t === '=' ? nv !== v : nv === v) return false; }
+      }
+      if (r > 0) {
+        const t = cons[conKey(idx(r - 1, c), idx(r, c))];
+        const nv = b[idx(r - 1, c)];
+        if (t && nv) { if (t === '=' ? nv !== v : nv === v) return false; }
+      }
+    }
+    return true;
+  }
+
+  // Would placing value `v` at cell i break a rule against the CURRENT partial
+  // board? Only certain (immediate) violations count — this is what makes a move
+  // "forced" and therefore deducible without guessing.
+  function forbidden(b, i, v, cons) {
+    const r = Math.floor(i / N), c = i % N;
+    const val = (rr, cc) => (rr < 0 || rr >= N || cc < 0 || cc >= N) ? -1 : b[idx(rr, cc)];
+
+    // row / column already holds 3 of this value → a 4th is impossible
+    let rc = 0, cc2 = 0;
+    for (let k = 0; k < N; k++) { if (b[idx(r, k)] === v) rc++; if (b[idx(k, c)] === v) cc2++; }
+    if (rc >= NEED || cc2 >= NEED) return true;
+
+    // would complete three-in-a-row (as end, middle, or start of a triple)
+    if (val(r, c - 1) === v && val(r, c - 2) === v) return true;
+    if (val(r, c - 1) === v && val(r, c + 1) === v) return true;
+    if (val(r, c + 1) === v && val(r, c + 2) === v) return true;
+    if (val(r - 1, c) === v && val(r - 2, c) === v) return true;
+    if (val(r - 1, c) === v && val(r + 1, c) === v) return true;
+    if (val(r + 1, c) === v && val(r + 2, c) === v) return true;
+
+    // = / × constraints against already-filled neighbours
+    const nb = [[r, c - 1], [r, c + 1], [r - 1, c], [r + 1, c]];
+    for (const [nr, ncc] of nb) {
+      if (nr < 0 || nr >= N || ncc < 0 || ncc >= N) continue;
+      const j = idx(nr, ncc), t = cons[conKey(i, j)], nv = b[j];
+      if (t && nv) { if (t === '=' ? nv !== v : nv === v) return true; }
+    }
+    return false;
+  }
+
+  // Solve using ONLY forced moves (a cell where one of the two symbols is
+  // impossible). Returns true only if the whole board fills in this way — i.e.
+  // the puzzle is solvable by pure logic, no guessing required.
+  function logicSolve(givens, cons) {
+    const b = givens.slice();
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (let i = 0; i < N * N; i++) {
+        if (b[i]) continue;
+        const canSun  = !forbidden(b, i, SUN, cons);
+        const canMoon = !forbidden(b, i, MOON, cons);
+        if (!canSun && !canMoon) return false;   // contradiction
+        if (canSun !== canMoon) { b[i] = canSun ? SUN : MOON; changed = true; }
+      }
+    }
+    return b.every(v => v !== 0);
+  }
+
+  // Build one random fully-solved board.
+  function generateSolution() {
+    const b = new Array(N * N).fill(0);
+    const rowCnt = Array.from({ length: N }, () => [0, 0, 0]);
+    const colCnt = Array.from({ length: N }, () => [0, 0, 0]);
+
+    function rec(pos) {
+      if (pos === N * N) return true;
+      const r = Math.floor(pos / N), c = pos % N;
+      const opts = Math.random() < 0.5 ? [SUN, MOON] : [MOON, SUN];
+      for (const v of opts) {
+        if (ok(b, rowCnt, colCnt, r, c, v, null)) {
+          b[pos] = v; rowCnt[r][v]++; colCnt[c][v]++;
+          if (rec(pos + 1)) return true;
+          b[pos] = 0; rowCnt[r][v]--; colCnt[c][v]--;
+        }
+      }
+      return false;
+    }
+    rec(0);
+    return b;
+  }
+
+  // Create a puzzle: a set of givens + constraints with a unique solution.
+  function makePuzzle() {
+    const sol = generateSolution();
+
+    // candidate edges (adjacent pairs)
+    const edges = [];
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        if (c < N - 1) edges.push([idx(r, c), idx(r, c + 1)]);
+        if (r < N - 1) edges.push([idx(r, c), idx(r + 1, c)]);
+      }
+    }
+    shuffle(edges);
+
+    // pick a handful of constraints derived from the solution
+    const cons = {};
+    const numCons = 7;
+    for (let k = 0; k < numCons && k < edges.length; k++) {
+      const [a, b] = edges[k];
+      cons[conKey(a, b)] = (sol[a] === sol[b]) ? '=' : 'x';
+    }
+
+    // Start from the full solution and greedily hide cells, but ONLY while the
+    // puzzle stays solvable by pure logic (logicSolve). Because every step of
+    // logicSolve is a forced move, a puzzle it can finish is both uniquely
+    // solvable AND requires no guessing.
+    const givens = sol.slice();
+    for (const i of shuffle([...Array(N * N).keys()])) {
+      const saved = givens[i];
+      givens[i] = 0;
+      if (!logicSolve(givens, cons)) givens[i] = saved;
+    }
+    return { given: givens, cons };
+  }
+
+  /* ---------- Rendering ---------- */
+  function buildCells() {
+    boardEl.querySelectorAll('.t-cell, .t-marker').forEach(e => e.remove());
+    cellEls = [];
+    for (let i = 0; i < N * N; i++) {
+      const el = document.createElement('div');
+      el.className = 't-cell';
+      el.dataset.index = i;
+      el.addEventListener('click', () => onCellClick(i));
+      el.addEventListener('contextmenu', e => { e.preventDefault(); onCellRight(i); });
+      addLongPress(el, () => onCellRight(i));
+      boardEl.appendChild(el);
+      cellEls.push(el);
+    }
+    sizeTangoBoard();
+  }
+
+  // Scale the 6x6 board (and cell font) so it always fits the viewport.
+  function sizeTangoBoard() {
+    const s = boardFit(N, 68, 7, 19, 32);
+    boardEl.style.gridTemplateColumns = `repeat(${N}, ${s}px)`;
+    boardEl.style.gridTemplateRows = `repeat(${N}, ${s}px)`;
+    const fs = Math.max(1.1, s * 0.032).toFixed(2) + 'rem';
+    for (const el of cellEls) { el.style.width = s + 'px'; el.style.height = s + 'px'; el.style.fontSize = fs; }
+  }
+
+  function buildMarkers() {
+    markers.forEach(m => m.el.remove());
+    markers = [];
+    for (const k in conMap) {
+      const [a, b] = k.split('-').map(Number);
+      const el = document.createElement('div');
+      el.className = 't-marker';
+      el.textContent = conMap[k] === '=' ? '=' : '×';
+      boardEl.appendChild(el);
+      markers.push({ a, b, type: conMap[k], el });
+    }
+    layoutMarkers();
+  }
+
+  function layoutMarkers() {
+    for (const m of markers) {
+      const a = cellEls[m.a], b = cellEls[m.b];
+      const x = (a.offsetLeft + a.offsetWidth / 2 + b.offsetLeft + b.offsetWidth / 2) / 2;
+      const y = (a.offsetTop + a.offsetHeight / 2 + b.offsetTop + b.offsetHeight / 2) / 2;
+      m.el.style.left = x + 'px';
+      m.el.style.top  = y + 'px';
+    }
+  }
+
+  function renderCell(i) {
+    const el = cellEls[i], v = values[i];
+    el.textContent = v ? GLYPH[v] : '';
+    el.classList.remove('sun', 'moon', 'given', 'error', 'solved');
+    if (given[i]) el.classList.add('given');
+    if (v === SUN) el.classList.add('sun');
+    if (v === MOON) el.classList.add('moon');
+  }
+
+  function renderAll() { for (let i = 0; i < N * N; i++) renderCell(i); }
+
+  /* ---------- Validation / feedback ---------- */
+  function computeErrors() {
+    const bad = new Set();
+    // over-count per row/col
+    for (let r = 0; r < N; r++) {
+      const cnt = [0, 0, 0];
+      for (let c = 0; c < N; c++) { const v = values[idx(r, c)]; if (v) cnt[v]++; }
+      for (const v of [SUN, MOON]) if (cnt[v] > NEED)
+        for (let c = 0; c < N; c++) if (values[idx(r, c)] === v) bad.add(idx(r, c));
+    }
+    for (let c = 0; c < N; c++) {
+      const cnt = [0, 0, 0];
+      for (let r = 0; r < N; r++) { const v = values[idx(r, c)]; if (v) cnt[v]++; }
+      for (const v of [SUN, MOON]) if (cnt[v] > NEED)
+        for (let r = 0; r < N; r++) if (values[idx(r, c)] === v) bad.add(idx(r, c));
+    }
+    // three-in-a-row
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c <= N - 3; c++) {
+        const a = values[idx(r, c)];
+        if (a && a === values[idx(r, c + 1)] && a === values[idx(r, c + 2)])
+          bad.add(idx(r, c)).add(idx(r, c + 1)).add(idx(r, c + 2));
+      }
+    for (let c = 0; c < N; c++)
+      for (let r = 0; r <= N - 3; r++) {
+        const a = values[idx(r, c)];
+        if (a && a === values[idx(r + 1, c)] && a === values[idx(r + 2, c)])
+          bad.add(idx(r, c)).add(idx(r + 1, c)).add(idx(r + 2, c));
+      }
+    // constraint violations (only when both cells filled)
+    for (const m of markers) {
+      const va = values[m.a], vb = values[m.b];
+      let violated = false;
+      if (va && vb) violated = m.type === '=' ? va !== vb : va === vb;
+      m.el.classList.toggle('bad', violated);
+      if (violated) { bad.add(m.a); bad.add(m.b); }
+    }
+    return bad;
+  }
+
+  function isSolved() {
+    if (values.some(v => v === 0)) return false;
+    for (let r = 0; r < N; r++) {
+      let s = 0; for (let c = 0; c < N; c++) if (values[idx(r, c)] === SUN) s++;
+      if (s !== NEED) return false;
+    }
+    for (let c = 0; c < N; c++) {
+      let s = 0; for (let r = 0; r < N; r++) if (values[idx(r, c)] === SUN) s++;
+      if (s !== NEED) return false;
+    }
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c <= N - 3; c++) {
+        const a = values[idx(r, c)];
+        if (a === values[idx(r, c + 1)] && a === values[idx(r, c + 2)]) return false;
+      }
+    for (let c = 0; c < N; c++)
+      for (let r = 0; r <= N - 3; r++) {
+        const a = values[idx(r, c)];
+        if (a === values[idx(r + 1, c)] && a === values[idx(r + 2, c)]) return false;
+      }
+    for (const m of markers) {
+      const va = values[m.a], vb = values[m.b];
+      if (m.type === '=' ? va !== vb : va === vb) return false;
+    }
+    return true;
+  }
+
+  function refresh() {
+    const bad = computeErrors();
+    for (let i = 0; i < N * N; i++)
+      cellEls[i].classList.toggle('error', bad.has(i));
+
+    if (isSolved()) {
+      finish();
+    } else {
+      const filled = values.filter(v => v).length;
+      statusEl.innerHTML = bad.size
+        ? `<span style="color:#e94560;font-weight:700">Ima grešaka…</span>`
+        : `Popunjeno ${filled} / ${N * N}`;
+    }
+  }
+
+  function finish() {
+    if (solved) return;
+    solved = true;
+    pauseTimer();
+    const ms = elapsed();
+    cellEls.forEach(el => el.classList.add('solved'));
+    statusEl.innerHTML = `<span style="color:#53d8fb;font-weight:700">Riješeno u ${fmt(ms)}!</span>`;
+
+    finalTime.textContent = fmt(ms);
+    let isRecord = false;
+    if (best === null || ms < best) {
+      best = ms;
+      isRecord = true;
+      try { localStorage.setItem(BEST_KEY, String(ms)); } catch (e) {}
+      renderBest();
+    }
+    recordEl.textContent = isRecord ? '★ NOVI REKORD ★' : '';
+    finalSub.textContent = isRecord
+      ? 'Novi najbolji rezultat!'
+      : (best !== null ? `Tvoj rekord je ${fmt(best)}.` : 'Bravo!');
+    setTimeout(() => overlayEl.classList.add('visible'), 500);
+  }
+
+  function renderBest() { bestEl.textContent = best === null ? '—' : fmt(best); }
+
+  /* ---------- Interaction ---------- */
+  function place(i, v) {
+    if (solved || given[i]) return;
+    startTimer();
+    values[i] = v;
+    renderCell(i);
+    cellEls[i].classList.add('pop');
+    cellEls[i].addEventListener('animationend', () => cellEls[i].classList.remove('pop'), { once: true });
+    refresh();
+  }
+
+  // left click: empty -> sun -> moon -> empty
+  function onCellClick(i) {
+    if (solved || given[i]) return;
+    place(i, (values[i] + 1) % 3);
+  }
+
+  // right click: toggle the moon directly (moon <-> empty)
+  function onCellRight(i) {
+    if (solved || given[i]) return;
+    place(i, values[i] === MOON ? 0 : MOON);
+  }
+
+  function clearBoard() {
+    if (solved) return;
+    for (let i = 0; i < N * N; i++) if (!given[i]) values[i] = 0;
+    renderAll();
+    refresh();
+  }
+
+  function newPuzzle() {
+    const p = makePuzzle();
+    given = p.given.slice();
+    conMap = p.cons;
+    values = given.slice();
+    solved = false;
+    resetTimer();
+    overlayEl.classList.remove('visible');
+
+    buildCells();
+    renderAll();
+    buildMarkers();
+    statusEl.textContent = 'Klikni ćeliju: ☀ → ☾ → prazno';
+  }
+
+  /* ---------- Lifecycle ---------- */
+  function init() {
+    try {
+      const stored = localStorage.getItem(BEST_KEY);
+      best = stored === null ? null : Number(stored);
+    } catch (e) { best = null; }
+    renderBest();
+    newPuzzle();
+  }
+
+  let initialised = false;
+  function onEnter() {
+    if (!initialised) { initialised = true; init(); }
+    else { layoutMarkers(); resumeTimer(); }
+  }
+  function onLeave() { pauseTimer(); }
+
+  window.addEventListener('resize', () => { if (cellEls.length) { sizeTangoBoard(); layoutMarkers(); } });
+
+  document.getElementById('t-new').addEventListener('click', newPuzzle);
+  document.getElementById('t-clear').addEventListener('click', clearBoard);
+  document.getElementById('t-play-again').addEventListener('click', newPuzzle);
+
+  return { onEnter, onLeave };
+})();
+
+/* ======================================================================
+   MINOLOVAC
+   ====================================================================== */
+const Mines = (() => {
+  const LEVELS = {
+    easy:   { rows: 8,  cols: 8,  mines: 10, size: 48, label: 'Lako' },
+    medium: { rows: 12, cols: 12, mines: 30, size: 38, label: 'Srednje' },
+    hard:   { rows: 16, cols: 16, mines: 50, size: 30, label: 'Teško' }
+  };
+
+  // DOM
+  const boardEl   = document.getElementById('m-board');
+  const minesEl   = document.getElementById('m-mines');
+  const timeEl    = document.getElementById('m-time');
+  const bestEl    = document.getElementById('m-best');
+  const statusEl  = document.getElementById('m-status');
+  const flagBtn   = document.getElementById('m-flag');
+  const overlayEl = document.getElementById('m-overlay');
+  const resEmoji  = document.getElementById('m-result-emoji');
+  const resTitle  = document.getElementById('m-result-title');
+  const finalTime = document.getElementById('m-final-time');
+  const recordEl  = document.getElementById('m-record-badge');
+  const finalSub  = document.getElementById('m-final-sub');
+
+  // State
+  let level   = 'easy';
+  let rows = 0, cols = 0, mineCount = 0;
+  let grid = [];                // {mine, adj, revealed, flagged}
+  let cellEls = [];
+  let firstClick = true;
+  let gameOver = false, won = false;
+  let flags = 0, revealedCount = 0;
+  let flagMode = false;
+  let mayNeedGuess = false;     // true only if a no-guess board couldn't be found in time
+  let best = {};                // per-level ms
+
+  // Timer
+  let started = false, running = false, stamp = 0, accrued = 0, ticker = null;
+  function elapsed() { return accrued + (running ? Date.now() - stamp : 0); }
+  function fmt(ms) {
+    const s = Math.floor(ms / 1000);
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function renderTime() { timeEl.textContent = fmt(elapsed()); }
+  function startTimer() {
+    if (running || gameOver) return;
+    started = true; running = true; stamp = Date.now();
+    ticker = setInterval(renderTime, 250);
+  }
+  function pauseTimer() {
+    if (!running) return;
+    accrued += Date.now() - stamp; running = false;
+    clearInterval(ticker); ticker = null;
+  }
+  function resumeTimer() {
+    if (running || gameOver || !started) return;
+    running = true; stamp = Date.now();
+    ticker = setInterval(renderTime, 250);
+  }
+  function resetTimer() {
+    clearInterval(ticker); ticker = null;
+    started = false; running = false; accrued = 0; stamp = 0;
+    renderTime();
+  }
+
+  const idx = (r, c) => r * cols + c;
+  const neighbours = i => {
+    const r = Math.floor(i / cols), c = i % cols, res = [];
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) res.push(idx(nr, nc));
+      }
+    return res;
+  };
+
+  function renderMines() { minesEl.textContent = mineCount - flags; }
+  function renderBest() {
+    const b = best[level];
+    bestEl.textContent = (b === undefined || b === null) ? '—' : fmt(b);
+  }
+
+  /* ---------- Board setup ---------- */
+  function buildBoard() {
+    boardEl.innerHTML = '';
+    boardEl.style.setProperty('--m-size', boardFit(cols, LEVELS[level].size, 4, 16, 12) + 'px');
+    boardEl.style.gridTemplateColumns = `repeat(${cols}, var(--m-size))`;
+    cellEls = [];
+    for (let i = 0; i < rows * cols; i++) {
+      const el = document.createElement('div');
+      el.className = 'm-cell';
+      el.addEventListener('click', () => onReveal(i));
+      el.addEventListener('contextmenu', e => { e.preventDefault(); onFlag(i); });
+      addLongPress(el, () => onFlag(i));
+      boardEl.appendChild(el);
+      cellEls.push(el);
+    }
+  }
+
+  // Adjacency counts for a candidate mine layout (mines get -1, never read).
+  function adjFor(mineSet) {
+    const a = new Array(rows * cols).fill(0);
+    for (let i = 0; i < rows * cols; i++)
+      a[i] = mineSet.has(i) ? -1 : neighbours(i).filter(n => mineSet.has(n)).length;
+    return a;
+  }
+
+  const isSubset = (small, big) => { for (const x of small) if (!big.has(x)) return false; return true; };
+
+  // Can this layout be solved from `start` using ONLY logical deduction (no
+  // guessing)? Simulates a solver: flood-reveal, then repeatedly apply
+  // single-point, the 1-2 subset rule, and the global mine-count rule.
+  function isNoGuess(mineSet, adj, start) {
+    const total = rows * cols;
+    const state = new Array(total).fill(0);   // 0 unknown, 1 revealed-safe, 2 known-mine
+
+    const revealFlood = i => {
+      const stack = [i];
+      while (stack.length) {
+        const c = stack.pop();
+        if (state[c] !== 0 || mineSet.has(c)) continue;
+        state[c] = 1;
+        if (adj[c] === 0) for (const n of neighbours(c)) if (state[n] === 0) stack.push(n);
+      }
+    };
+    revealFlood(start);
+
+    let changed = true;
+    while (changed) {
+      changed = false;
+
+      // single-point: a number with all mines found → rest safe; all unknowns are mines → mark
+      for (let i = 0; i < total; i++) {
+        if (state[i] !== 1 || adj[i] === 0) continue;
+        const nb = neighbours(i);
+        const unknown = nb.filter(n => state[n] === 0);
+        if (!unknown.length) continue;
+        const remaining = adj[i] - nb.filter(n => state[n] === 2).length;
+        if (remaining === 0) {
+          for (const u of unknown) {
+            if (state[u] !== 0) continue;
+            changed = true;
+            if (adj[u] === 0) revealFlood(u); else state[u] = 1;
+          }
+        } else if (remaining === unknown.length) {
+          for (const u of unknown) { state[u] = 2; changed = true; }
+        }
+      }
+      if (changed) continue;
+
+      // subset (1-2) rule: if A's unknowns ⊆ B's, the difference holds (B.mines - A.mines) mines
+      const cons = [];
+      for (let i = 0; i < total; i++) {
+        if (state[i] !== 1 || adj[i] === 0) continue;
+        const nb = neighbours(i);
+        const unknown = nb.filter(n => state[n] === 0);
+        if (!unknown.length) continue;
+        cons.push({ cells: new Set(unknown), mines: adj[i] - nb.filter(n => state[n] === 2).length });
+      }
+      for (const A of cons) {
+        for (const B of cons) {
+          if (A === B || A.cells.size >= B.cells.size || !isSubset(A.cells, B.cells)) continue;
+          const diff = [...B.cells].filter(x => !A.cells.has(x));
+          const diffMines = B.mines - A.mines;
+          if (diffMines === 0) {
+            for (const u of diff) {
+              if (state[u] !== 0) continue;
+              changed = true;
+              if (adj[u] === 0) revealFlood(u); else state[u] = 1;
+            }
+          } else if (diffMines === diff.length) {
+            for (const u of diff) { if (state[u] === 0) { state[u] = 2; changed = true; } }
+          }
+        }
+        if (changed) break;
+      }
+      if (changed) continue;
+
+      // global count: use total remaining mines vs. remaining unknown cells
+      const unknownCells = [];
+      let knownMines = 0;
+      for (let i = 0; i < total; i++) { if (state[i] === 0) unknownCells.push(i); else if (state[i] === 2) knownMines++; }
+      const remainingMines = mineSet.size - knownMines;
+      if (unknownCells.length) {
+        if (remainingMines === 0) {
+          for (const u of unknownCells) {
+            if (state[u] !== 0) continue;
+            changed = true;
+            if (adj[u] === 0) revealFlood(u); else state[u] = 1;
+          }
+        } else if (remainingMines === unknownCells.length) {
+          for (const u of unknownCells) { state[u] = 2; changed = true; }
+        }
+      }
+    }
+
+    for (let i = 0; i < total; i++) if (!mineSet.has(i) && state[i] !== 1) return false;
+    return true;
+  }
+
+  // Place mines after the first click so it (and its neighbours) are safe, and
+  // — preferably — so the whole board is solvable by logic without guessing.
+  function placeMines(safe) {
+    const safeSet = new Set([safe, ...neighbours(safe)]);
+    const pool = [];
+    for (let i = 0; i < rows * cols; i++) if (!safeSet.has(i)) pool.push(i);
+    const count = Math.min(mineCount, pool.length);
+    mineCount = count;                       // in case board was too small
+
+    const sample = () => {
+      const p = pool.slice();
+      for (let k = 0; k < count; k++) {
+        const j = k + Math.floor(Math.random() * (p.length - k));
+        [p[k], p[j]] = [p[j], p[k]];
+      }
+      return new Set(p.slice(0, count));
+    };
+
+    let mineSet = null, adj = null;
+    mayNeedGuess = false;
+    const deadline = Date.now() + 2000;      // best-effort time budget
+    while (Date.now() < deadline) {
+      const cand = sample();
+      const cAdj = adjFor(cand);
+      if (isNoGuess(cand, cAdj, safe)) { mineSet = cand; adj = cAdj; break; }
+    }
+    if (!mineSet) { mineSet = sample(); adj = adjFor(mineSet); mayNeedGuess = true; }
+
+    for (const i of mineSet) grid[i].mine = true;
+    for (let i = 0; i < rows * cols; i++) grid[i].adj = adj[i];
+    renderMines();
+  }
+
+  /* ---------- Rendering a cell ---------- */
+  function renderCell(i) {
+    const el = cellEls[i], cell = grid[i];
+    el.className = 'm-cell';
+    el.textContent = '';
+    if (cell.flagged && !cell.revealed) { el.classList.add('flag'); el.textContent = '🚩'; return; }
+    if (!cell.revealed) return;
+    el.classList.add('revealed');
+    if (cell.mine) { el.textContent = '💣'; el.classList.add('mine'); return; }
+    if (cell.adj > 0) { el.textContent = cell.adj; el.classList.add('n' + cell.adj); }
+  }
+
+  /* ---------- Interaction ---------- */
+  function onReveal(i) {
+    if (gameOver) return;
+    const cell = grid[i];
+    if (flagMode) { onFlag(i); return; }
+    if (cell.flagged || cell.revealed) return;
+
+    if (firstClick) {
+      placeMines(i);
+      firstClick = false;
+      startTimer();
+      statusEl.innerHTML = mayNeedGuess
+        ? `<span style="color:#f0a500">Napomena: ova ploča možda traži pogađanje.</span>`
+        : `<span style="color:#43d17a">Rješivo logikom — bez pogađanja.</span>`;
+    }
+
+    if (cell.mine) { lose(i); return; }
+    flood(i);
+    renderMines();
+    if (!gameOver) checkWin();
+  }
+
+  function flood(start) {
+    const stack = [start];
+    while (stack.length) {
+      const i = stack.pop();
+      const cell = grid[i];
+      if (cell.revealed || cell.flagged) continue;
+      cell.revealed = true;
+      revealedCount++;
+      renderCell(i);
+      if (cell.adj === 0) for (const n of neighbours(i)) if (!grid[n].revealed) stack.push(n);
+    }
+  }
+
+  function onFlag(i) {
+    if (gameOver || grid[i].revealed) return;
+    if (!started && firstClick) startTimer();
+    grid[i].flagged = !grid[i].flagged;
+    flags += grid[i].flagged ? 1 : -1;
+    renderCell(i);
+    renderMines();
+  }
+
+  /* ---------- End states ---------- */
+  function lose(hit) {
+    gameOver = true; won = false;
+    pauseTimer();
+    for (let i = 0; i < rows * cols; i++) {
+      if (grid[i].mine && !grid[i].flagged) { grid[i].revealed = true; renderCell(i); }
+      if (grid[i].flagged && !grid[i].mine) { renderCell(i); cellEls[i].classList.add('wrong'); }
+    }
+    cellEls[hit].classList.add('exploded');
+    statusEl.innerHTML = `<span style="color:#e94560;font-weight:700">Bum! Nagazio si minu.</span>`;
+    resEmoji.textContent = '💥';
+    resTitle.textContent = 'Kraj igre';
+    finalTime.textContent = fmt(elapsed());
+    recordEl.textContent = '';
+    finalSub.textContent = 'Pokušaj ponovno!';
+    setTimeout(() => overlayEl.classList.add('visible'), 500);
+  }
+
+  function checkWin() {
+    if (revealedCount !== rows * cols - mineCount) return;
+    gameOver = true; won = true;
+    pauseTimer();
+    const ms = elapsed();
+    // auto-flag remaining mines for a tidy finish
+    for (let i = 0; i < rows * cols; i++)
+      if (grid[i].mine && !grid[i].flagged) { grid[i].flagged = true; renderCell(i); }
+    flags = mineCount; renderMines();
+    statusEl.innerHTML = `<span style="color:#53d8fb;font-weight:700">Očišćeno u ${fmt(ms)}!</span>`;
+
+    let isRecord = false;
+    const prev = best[level];
+    if (prev === undefined || prev === null || ms < prev) {
+      best[level] = ms; isRecord = true;
+      try { localStorage.setItem('mines-best-' + level, String(ms)); } catch (e) {}
+      renderBest();
+    }
+    resEmoji.textContent = '🎉';
+    resTitle.textContent = 'Pobjeda!';
+    finalTime.textContent = fmt(ms);
+    recordEl.textContent = isRecord ? '★ NOVI REKORD ★' : '';
+    finalSub.textContent = isRecord
+      ? `Najbolji rezultat za razinu ${LEVELS[level].label}!`
+      : (prev != null ? `Rekord (${LEVELS[level].label}): ${fmt(prev)}.` : 'Bravo!');
+    setTimeout(() => overlayEl.classList.add('visible'), 500);
+  }
+
+  /* ---------- New game ---------- */
+  function newGame() {
+    const cfg = LEVELS[level];
+    rows = cfg.rows; cols = cfg.cols; mineCount = cfg.mines;
+    grid = Array.from({ length: rows * cols }, () => ({ mine: false, adj: 0, revealed: false, flagged: false }));
+    firstClick = true; gameOver = false; won = false;
+    flags = 0; revealedCount = 0;
+    resetTimer();
+    overlayEl.classList.remove('visible');
+    buildBoard();
+    renderMines();
+    statusEl.textContent = 'Klikni bilo koje polje za početak.';
+  }
+
+  function setFlagMode(on) {
+    flagMode = on;
+    flagBtn.textContent = 'Način: ' + (on ? 'Zastavica 🚩' : 'Otkrij');
+    flagBtn.classList.toggle('btn-restart', on);
+    flagBtn.classList.toggle('btn-reset', !on);
+  }
+
+  /* ---------- Lifecycle ---------- */
+  let initialised = false;
+  function init() {
+    for (const lv of Object.keys(LEVELS)) {
+      try {
+        const s = localStorage.getItem('mines-best-' + lv);
+        best[lv] = s === null ? null : Number(s);
+      } catch (e) { best[lv] = null; }
+    }
+    renderBest();
+    newGame();
+  }
+  function onEnter() {
+    if (!initialised) { initialised = true; init(); }
+    else { resumeTimer(); }
+  }
+  function onLeave() { pauseTimer(); }
+
+  // level selector
+  document.querySelectorAll('#m-levels button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#m-levels button').forEach(b => b.classList.toggle('active', b === btn));
+      level = btn.dataset.level;
+      renderBest();
+      newGame();
+    });
+  });
+
+  document.getElementById('m-new').addEventListener('click', newGame);
+  document.getElementById('m-play-again').addEventListener('click', newGame);
+  flagBtn.addEventListener('click', () => setFlagMode(!flagMode));
+
+  // keep the board fitted to the viewport on rotate / resize
+  window.addEventListener('resize', () => {
+    if (!cellEls.length || !cols) return;
+    boardEl.style.setProperty('--m-size', boardFit(cols, LEVELS[level].size, 4, 16, 12) + 'px');
+  });
+
+  return { onEnter, onLeave };
+})();
+
+/* ======================================================================
+   NEBODERI  (Skyscrapers)
+   ====================================================================== */
+const Sky = (() => {
+  const N = 5;                       // 5x5 grid, heights 1..5
+
+  // all permutations of 1..N, precomputed for the line-based logic solver
+  const PERMS = (() => {
+    const res = [];
+    const perm = (acc, rest) => {
+      if (!rest.length) { res.push(acc); return; }
+      for (let k = 0; k < rest.length; k++)
+        perm(acc.concat(rest[k]), rest.slice(0, k).concat(rest.slice(k + 1)));
+    };
+    perm([], [1, 2, 3, 4, 5]);
+    return res;
+  })();
+
+  const idx = (r, c) => r * N + c;
+  const shuffle = arr => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // DOM
+  const boardEl   = document.getElementById('sky-board');
+  const timeEl    = document.getElementById('sky-time');
+  const bestEl    = document.getElementById('sky-best');
+  const statusEl  = document.getElementById('sky-status');
+  const overlayEl = document.getElementById('sky-overlay');
+  const finalTime = document.getElementById('sky-final-time');
+  const recordEl  = document.getElementById('sky-record-badge');
+  const finalSub  = document.getElementById('sky-final-sub');
+
+  // State
+  let cellEls = [];                  // N*N play cells
+  let clueEls = { top: [], bottom: [], left: [], right: [] };
+  let clues   = { top: [], bottom: [], left: [], right: [] };  // 0 = hidden
+  let values  = new Array(N * N).fill(0);
+  let solved  = false;
+  let mode    = 'classic';           // 'classic' = no-guess, 'pro' = unique-only
+  let best    = {};                  // per-mode best ms
+
+  // Timer
+  let started = false, running = false, stamp = 0, accrued = 0, ticker = null;
+  function elapsed() { return accrued + (running ? Date.now() - stamp : 0); }
+  function fmt(ms) {
+    const s = Math.floor(ms / 1000);
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function renderTime() { timeEl.textContent = fmt(elapsed()); }
+  function startTimer() {
+    if (running || solved) return;
+    started = true; running = true; stamp = Date.now();
+    ticker = setInterval(renderTime, 250);
+  }
+  function pauseTimer() {
+    if (!running) return;
+    accrued += Date.now() - stamp; running = false;
+    clearInterval(ticker); ticker = null;
+  }
+  function resumeTimer() {
+    if (running || solved || !started) return;
+    running = true; stamp = Date.now();
+    ticker = setInterval(renderTime, 250);
+  }
+  function resetTimer() {
+    clearInterval(ticker); ticker = null;
+    started = false; running = false; accrued = 0; stamp = 0;
+    renderTime();
+  }
+
+  /* ---------- Puzzle logic ---------- */
+  // How many buildings are visible when looking along this line of heights.
+  function visible(arr) {
+    let max = 0, cnt = 0;
+    for (const v of arr) if (v > max) { max = v; cnt++; }
+    return cnt;
+  }
+
+  const lineRow = (b, r) => { const a = []; for (let c = 0; c < N; c++) a.push(b[idx(r, c)]); return a; };
+  const lineCol = (b, c) => { const a = []; for (let r = 0; r < N; r++) a.push(b[idx(r, c)]); return a; };
+
+  // Random Latin square: each row/column a permutation of 1..N.
+  function generateSolution() {
+    const b = new Array(N * N).fill(0);
+    const rowUsed = Array.from({ length: N }, () => new Array(N + 1).fill(false));
+    const colUsed = Array.from({ length: N }, () => new Array(N + 1).fill(false));
+    function rec(pos) {
+      if (pos === N * N) return true;
+      const r = Math.floor(pos / N), c = pos % N;
+      for (const v of shuffle([1, 2, 3, 4, 5])) {
+        if (rowUsed[r][v] || colUsed[c][v]) continue;
+        b[pos] = v; rowUsed[r][v] = true; colUsed[c][v] = true;
+        if (rec(pos + 1)) return true;
+        b[pos] = 0; rowUsed[r][v] = false; colUsed[c][v] = false;
+      }
+      return false;
+    }
+    rec(0);
+    return b;
+  }
+
+  // Edge clues for every side of a full solution.
+  function computeClues(sol) {
+    const c = { top: [], bottom: [], left: [], right: [] };
+    for (let i = 0; i < N; i++) {
+      const col = lineCol(sol, i), row = lineRow(sol, i);
+      c.top[i]    = visible(col);
+      c.bottom[i] = visible(col.slice().reverse());
+      c.left[i]   = visible(row);
+      c.right[i]  = visible(row.slice().reverse());
+    }
+    return c;
+  }
+
+  // Count solutions consistent with the given clues, up to `limit`.
+  function countSolutions(cl, limit) {
+    const g = new Array(N * N).fill(0);
+    const rowUsed = Array.from({ length: N }, () => new Array(N + 1).fill(false));
+    const colUsed = Array.from({ length: N }, () => new Array(N + 1).fill(false));
+    let count = 0;
+    function rec(pos) {
+      if (count >= limit) return;
+      if (pos === N * N) { count++; return; }
+      const r = Math.floor(pos / N), c = pos % N;
+      for (let v = 1; v <= N; v++) {
+        if (rowUsed[r][v] || colUsed[c][v]) continue;
+        g[pos] = v; rowUsed[r][v] = true; colUsed[c][v] = true;
+        let good = true;
+        if (c === N - 1) {                       // row r complete
+          const row = lineRow(g, r);
+          if (cl.left[r]  && visible(row) !== cl.left[r]) good = false;
+          if (good && cl.right[r] && visible(row.slice().reverse()) !== cl.right[r]) good = false;
+        }
+        if (good && r === N - 1) {               // column c complete
+          const col = lineCol(g, c);
+          if (cl.top[c]    && visible(col) !== cl.top[c]) good = false;
+          if (good && cl.bottom[c] && visible(col.slice().reverse()) !== cl.bottom[c]) good = false;
+        }
+        if (good) rec(pos + 1);
+        g[pos] = 0; rowUsed[r][v] = false; colUsed[c][v] = false;
+        if (count >= limit) return;
+      }
+    }
+    rec(0);
+    return count;
+  }
+
+  // Solve using ONLY per-line logic: for each row/column, keep the heights that
+  // some arrangement (consistent with current candidates + its clues) supports.
+  // This never guesses across lines. Returns true iff it fully determines the
+  // grid — i.e. the puzzle is solvable without any guessing.
+  function logicSolve(cl) {
+    const cand = [];
+    for (let i = 0; i < N * N; i++) cand.push(new Set([1, 2, 3, 4, 5]));
+    const lineCells = (type, i) => {
+      const cells = [];
+      for (let k = 0; k < N; k++) cells.push(type === 'row' ? idx(i, k) : idx(k, i));
+      return cells;
+    };
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const type of ['row', 'col']) {
+        for (let i = 0; i < N; i++) {
+          const cells = lineCells(type, i);
+          const front = type === 'row' ? cl.left[i]  : cl.top[i];
+          const back  = type === 'row' ? cl.right[i] : cl.bottom[i];
+          const allowed = cells.map(() => new Set());
+          let any = false;
+          for (const perm of PERMS) {
+            let fits = true;
+            for (let k = 0; k < N; k++) if (!cand[cells[k]].has(perm[k])) { fits = false; break; }
+            if (!fits) continue;
+            if (front && visible(perm) !== front) continue;
+            if (back && visible(perm.slice().reverse()) !== back) continue;
+            any = true;
+            for (let k = 0; k < N; k++) allowed[k].add(perm[k]);
+          }
+          if (!any) return false;                 // no valid arrangement → contradiction
+          for (let k = 0; k < N; k++) {
+            const c = cells[k];
+            for (const v of [...cand[c]]) if (!allowed[k].has(v)) { cand[c].delete(v); changed = true; }
+            if (cand[c].size === 0) return false;
+          }
+        }
+      }
+    }
+    return cand.every(s => s.size === 1);
+  }
+
+  // Build a puzzle, keeping as few clues as possible. The acceptance test
+  // depends on the mode:
+  //   classic → must stay solvable by pure logic (logicSolve)  [no guessing]
+  //   pro     → must keep a unique solution (countSolutions)   [may need guessing]
+  // A logic-solvable puzzle is automatically unique, so classic is the stricter.
+  function makePuzzle() {
+    const classic = mode === 'classic';
+    const solvable = cl => classic ? logicSolve(cl) : (countSolutions(cl, 2) === 1);
+
+    let full = null;
+    for (let attempt = 0; attempt < 400; attempt++) {
+      const c = computeClues(generateSolution());
+      if (solvable(c)) { full = c; break; }
+    }
+    if (!full) full = computeClues(generateSolution());   // fallback (extremely rare)
+
+    const cl = {
+      top: full.top.slice(), bottom: full.bottom.slice(),
+      left: full.left.slice(), right: full.right.slice()
+    };
+    const positions = [];
+    for (let i = 0; i < N; i++) positions.push(['top', i], ['bottom', i], ['left', i], ['right', i]);
+    for (const [side, i] of shuffle(positions)) {
+      const saved = cl[side][i];
+      cl[side][i] = 0;
+      if (!solvable(cl)) cl[side][i] = saved;   // needed → put it back
+    }
+    return cl;
+  }
+
+  /* ---------- Rendering ---------- */
+  function buildBoard() {
+    boardEl.innerHTML = '';
+    cellEls = new Array(N * N);
+    clueEls = { top: [], bottom: [], left: [], right: [] };
+    const T = N + 2;
+    for (let rr = 0; rr < T; rr++) {
+      for (let cc = 0; cc < T; cc++) {
+        const el = document.createElement('div');
+        const edgeR = (rr === 0 || rr === T - 1);
+        const edgeC = (cc === 0 || cc === T - 1);
+        if (edgeR && edgeC) {
+          el.className = 'sky-corner';
+        } else if (rr === 0) {
+          el.className = 'sky-clue'; clueEls.top[cc - 1] = el;
+        } else if (rr === T - 1) {
+          el.className = 'sky-clue'; clueEls.bottom[cc - 1] = el;
+        } else if (cc === 0) {
+          el.className = 'sky-clue'; clueEls.left[rr - 1] = el;
+        } else if (cc === T - 1) {
+          el.className = 'sky-clue'; clueEls.right[rr - 1] = el;
+        } else {
+          const i = idx(rr - 1, cc - 1);
+          el.className = 'sky-cell';
+          el.innerHTML = '<div class="sky-fill"></div><span></span>';
+          el.addEventListener('click', () => onCell(i, +1));
+          el.addEventListener('contextmenu', e => { e.preventDefault(); onCell(i, -1); });
+          addLongPress(el, () => onCell(i, -1));
+          cellEls[i] = el;
+        }
+        boardEl.appendChild(el);
+      }
+    }
+    sizeSkyBoard();
+  }
+
+  // Scale the (N+2)x(N+2) board (cells + clue numbers) to fit the viewport.
+  function sizeSkyBoard() {
+    const s = boardFit(N + 2, 62, 5, 19, 28);
+    boardEl.style.gridTemplateColumns = `repeat(${N + 2}, ${s}px)`;
+    boardEl.style.gridTemplateRows = `repeat(${N + 2}, ${s}px)`;
+    const cf = Math.max(1.0, s * 0.028).toFixed(2) + 'rem';
+    const clf = Math.max(0.8, s * 0.02).toFixed(2) + 'rem';
+    cellEls.forEach(el => { if (el) el.style.fontSize = cf; });
+    for (const side of ['top', 'bottom', 'left', 'right'])
+      clueEls[side].forEach(el => { if (el) el.style.fontSize = clf; });
+  }
+
+  function renderClues() {
+    for (const side of ['top', 'bottom', 'left', 'right'])
+      for (let i = 0; i < N; i++) {
+        const el = clueEls[side][i], v = clues[side][i];
+        el.textContent = v ? v : '';
+        el.classList.remove('bad');
+      }
+  }
+
+  function renderCell(i) {
+    const el = cellEls[i], v = values[i];
+    el.querySelector('span').textContent = v ? v : '';
+    el.querySelector('.sky-fill').style.height = v ? (v / N * 100) + '%' : '0';
+  }
+
+  function renderAll() { for (let i = 0; i < N * N; i++) renderCell(i); }
+
+  /* ---------- Validation / feedback ---------- */
+  function refresh() {
+    const bad = new Set();
+
+    // duplicate heights in a row / column
+    for (let r = 0; r < N; r++) {
+      const seen = {};
+      for (let c = 0; c < N; c++) { const v = values[idx(r, c)]; if (v) (seen[v] = seen[v] || []).push(idx(r, c)); }
+      for (const k in seen) if (seen[k].length > 1) seen[k].forEach(x => bad.add(x));
+    }
+    for (let c = 0; c < N; c++) {
+      const seen = {};
+      for (let r = 0; r < N; r++) { const v = values[idx(r, c)]; if (v) (seen[v] = seen[v] || []).push(idx(r, c)); }
+      for (const k in seen) if (seen[k].length > 1) seen[k].forEach(x => bad.add(x));
+    }
+
+    // clue violations — only judge a line once it is completely filled
+    let clueBad = false;
+    for (let r = 0; r < N; r++) {
+      const row = lineRow(values, r), full = row.every(x => x);
+      const lb = clues.left[r]  && full && visible(row) !== clues.left[r];
+      const rb = clues.right[r] && full && visible(row.slice().reverse()) !== clues.right[r];
+      clueEls.left[r].classList.toggle('bad', !!lb);
+      clueEls.right[r].classList.toggle('bad', !!rb);
+      if (lb || rb) clueBad = true;
+    }
+    for (let c = 0; c < N; c++) {
+      const col = lineCol(values, c), full = col.every(x => x);
+      const tb = clues.top[c]    && full && visible(col) !== clues.top[c];
+      const bb = clues.bottom[c] && full && visible(col.slice().reverse()) !== clues.bottom[c];
+      clueEls.top[c].classList.toggle('bad', !!tb);
+      clueEls.bottom[c].classList.toggle('bad', !!bb);
+      if (tb || bb) clueBad = true;
+    }
+
+    for (let i = 0; i < N * N; i++) cellEls[i].classList.toggle('error', bad.has(i));
+
+    if (isSolved()) {
+      finish();
+    } else {
+      const filled = values.filter(v => v).length;
+      statusEl.innerHTML = (bad.size || clueBad)
+        ? `<span style="color:#e94560;font-weight:700">Ima grešaka…</span>`
+        : `Popunjeno ${filled} / ${N * N}`;
+    }
+  }
+
+  function isSolved() {
+    if (values.some(v => !v)) return false;
+    for (let r = 0; r < N; r++) if (new Set(lineRow(values, r)).size !== N) return false;
+    for (let c = 0; c < N; c++) if (new Set(lineCol(values, c)).size !== N) return false;
+    for (let r = 0; r < N; r++) {
+      const row = lineRow(values, r);
+      if (clues.left[r]  && visible(row) !== clues.left[r]) return false;
+      if (clues.right[r] && visible(row.slice().reverse()) !== clues.right[r]) return false;
+    }
+    for (let c = 0; c < N; c++) {
+      const col = lineCol(values, c);
+      if (clues.top[c]    && visible(col) !== clues.top[c]) return false;
+      if (clues.bottom[c] && visible(col.slice().reverse()) !== clues.bottom[c]) return false;
+    }
+    return true;
+  }
+
+  function finish() {
+    if (solved) return;
+    solved = true;
+    pauseTimer();
+    const ms = elapsed();
+    cellEls.forEach(el => el.classList.add('solved'));
+    statusEl.innerHTML = `<span style="color:#53d8fb;font-weight:700">Riješeno u ${fmt(ms)}!</span>`;
+
+    finalTime.textContent = fmt(ms);
+    let isRecord = false;
+    const prev = best[mode];
+    if (prev === undefined || prev === null || ms < prev) {
+      best[mode] = ms; isRecord = true;
+      try { localStorage.setItem('sky-best-' + mode, String(ms)); } catch (e) {}
+      renderBest();
+    }
+    recordEl.textContent = isRecord ? '★ NOVI REKORD ★' : '';
+    finalSub.textContent = isRecord
+      ? 'Novi najbolji rezultat!'
+      : (prev != null ? `Tvoj rekord je ${fmt(prev)}.` : 'Bravo!');
+    setTimeout(() => overlayEl.classList.add('visible'), 500);
+  }
+
+  function renderBest() {
+    const b = best[mode];
+    bestEl.textContent = (b === undefined || b === null) ? '—' : fmt(b);
+  }
+
+  /* ---------- Interaction ---------- */
+  function onCell(i, dir) {
+    if (solved) return;
+    startTimer();
+    values[i] = (values[i] + dir + (N + 1)) % (N + 1);   // cycle 0..N
+    renderCell(i);
+    refresh();
+  }
+
+  function clearBoard() {
+    if (solved) return;
+    values = new Array(N * N).fill(0);
+    renderAll();
+    refresh();
+  }
+
+  function newPuzzle() {
+    clues = makePuzzle();
+    values = new Array(N * N).fill(0);
+    solved = false;
+    resetTimer();
+    overlayEl.classList.remove('visible');
+    cellEls.forEach(el => el.classList.remove('solved', 'error'));
+    renderClues();
+    renderAll();
+    statusEl.textContent = 'Klikni polje za visinu (1–' + N + ').';
+  }
+
+  /* ---------- Lifecycle ---------- */
+  function init() {
+    for (const m of ['classic', 'pro']) {
+      try {
+        const s = localStorage.getItem('sky-best-' + m);
+        best[m] = s === null ? null : Number(s);
+      } catch (e) { best[m] = null; }
+    }
+    renderBest();
+    buildBoard();
+    newPuzzle();
+  }
+
+  let initialised = false;
+  function onEnter() {
+    if (!initialised) { initialised = true; init(); }
+    else { resumeTimer(); }
+  }
+  function onLeave() { pauseTimer(); }
+
+  // difficulty selector: KLASIČNO (no-guess) / PRO (unique-only)
+  document.querySelectorAll('#sky-levels button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#sky-levels button').forEach(b => b.classList.toggle('active', b === btn));
+      mode = btn.dataset.mode;
+      renderBest();
+      newPuzzle();
+    });
+  });
+
+  document.getElementById('sky-new').addEventListener('click', newPuzzle);
+  document.getElementById('sky-clear').addEventListener('click', clearBoard);
+  document.getElementById('sky-play-again').addEventListener('click', newPuzzle);
+
+  window.addEventListener('resize', () => { if (cellEls.length) sizeSkyBoard(); });
+
+  return { onEnter, onLeave };
+})();
+</script>
+</body>
+</html>
