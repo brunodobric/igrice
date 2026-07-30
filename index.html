@@ -2,8 +2,17 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Igrice</title>
+
+  <!-- Home-screen / tab icon -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="apple-touch-icon.png">
+  <!-- iPhone "Add to Home Screen": full-screen, nice title -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Igrice">
+  <meta name="theme-color" content="#16213e">
   <style>
     * {
       margin: 0;
@@ -652,7 +661,7 @@
       .game-side { width: auto; max-width: 420px; }
       .game-side .scoreboard { flex-direction: row; flex-wrap: wrap; justify-content: center; }
       .game-side .score-card { width: auto; min-width: 90px; }
-      .game-side .controls { flex-direction: row; }
+      .game-side .controls { flex-direction: row; justify-content: center; }
       .game-side .controls button { width: auto; }
       .game-side .t-legend { text-align: center; }
     }
@@ -809,6 +818,7 @@
     <div class="game-main">
       <div class="status-bar" id="m-status"></div>
       <div class="m-board" id="m-board"></div>
+      <button class="btn-reset" id="m-flag">Način: Otkrij</button>
     </div>
 
     <div class="game-side">
@@ -830,7 +840,6 @@
 
       <div class="controls">
         <button class="btn-restart" id="m-new">Nova igra</button>
-        <button class="btn-reset"   id="m-flag">Način: Otkrij</button>
       </div>
     </div>
   </section>
@@ -859,8 +868,8 @@
 
     <div class="game-side">
       <div class="game-nav" id="sky-levels">
-        <button data-mode="classic" class="active">KLASIČNO</button>
-        <button data-mode="pro">PRO</button>
+        <button data-mode="classic" class="active">Klasično</button>
+        <button data-mode="pro">Pro</button>
       </div>
 
       <div class="t-legend">
@@ -872,8 +881,8 @@
           <li>lijevi klik povećava, desni smanjuje visinu</li>
         </ul>
         <div style="margin-top:0.5rem">
-          <b>KLASIČNO</b> — uvijek rješivo logikom bez pogađanja.<br>
-          <b>PRO</b> — jedinstveno rješenje, ali ponekad traži pogađanje.
+          <b>Klasično</b> — uvijek rješivo logikom bez pogađanja.<br>
+          <b>Pro</b> — jedinstveno rješenje, ali ponekad traži pogađanje.
         </div>
       </div>
 
@@ -1152,6 +1161,7 @@ const Tango = (() => {
   let values  = new Array(N * N).fill(0);
   let solved  = false;
   let best    = null;
+  let errorTimer = null;         // delayed error-highlight timer
 
   // Timer
   let started = false, running = false, stamp = 0, accrued = 0, ticker = null;
@@ -1405,14 +1415,14 @@ const Tango = (() => {
           bad.add(idx(r, c)).add(idx(r + 1, c)).add(idx(r + 2, c));
       }
     // constraint violations (only when both cells filled)
+    const badMarkers = new Set();
     for (const m of markers) {
       const va = values[m.a], vb = values[m.b];
       let violated = false;
       if (va && vb) violated = m.type === '=' ? va !== vb : va === vb;
-      m.el.classList.toggle('bad', violated);
-      if (violated) { bad.add(m.a); bad.add(m.b); }
+      if (violated) { badMarkers.add(m); bad.add(m.a); bad.add(m.b); }
     }
-    return bad;
+    return { bad, badMarkers };
   }
 
   function isSolved() {
@@ -1442,19 +1452,34 @@ const Tango = (() => {
     return true;
   }
 
-  function refresh() {
-    const bad = computeErrors();
+  // Show the red error highlight (called after a short delay, see refresh()).
+  function showErrors() {
+    errorTimer = null;
+    if (solved) return;
+    const { bad, badMarkers } = computeErrors();
     for (let i = 0; i < N * N; i++)
       cellEls[i].classList.toggle('error', bad.has(i));
+    for (const m of markers) m.el.classList.toggle('bad', badMarkers.has(m));
+    const filled = values.filter(v => v).length;
+    statusEl.innerHTML = bad.size
+      ? `<span style="color:#e94560;font-weight:700">Ima grešaka…</span>`
+      : `Popunjeno ${filled} / ${N * N}`;
+  }
 
-    if (isSolved()) {
-      finish();
-    } else {
-      const filled = values.filter(v => v).length;
-      statusEl.innerHTML = bad.size
-        ? `<span style="color:#e94560;font-weight:700">Ima grešaka…</span>`
-        : `Popunjeno ${filled} / ${N * N}`;
-    }
+  function refresh() {
+    // Cancel any pending error highlight — the user is still editing.
+    if (errorTimer) { clearTimeout(errorTimer); errorTimer = null; }
+    // Clear current red so nothing flashes while placing a moon (needs two clicks).
+    for (let i = 0; i < N * N; i++) cellEls[i].classList.remove('error');
+    for (const m of markers) m.el.classList.remove('bad');
+
+    if (isSolved()) { finish(); return; }
+
+    const { bad } = computeErrors();
+    const filled = values.filter(v => v).length;
+    statusEl.innerHTML = `Popunjeno ${filled} / ${N * N}`;
+    // Delay the red so a quick correction (☀ → ☾) doesn't briefly flash an error.
+    if (bad.size) errorTimer = setTimeout(showErrors, 2000);
   }
 
   function finish() {
@@ -1513,6 +1538,7 @@ const Tango = (() => {
   }
 
   function newPuzzle() {
+    if (errorTimer) { clearTimeout(errorTimer); errorTimer = null; }
     const p = makePuzzle();
     given = p.given.slice();
     conMap = p.cons;
@@ -1542,7 +1568,7 @@ const Tango = (() => {
     if (!initialised) { initialised = true; init(); }
     else { layoutMarkers(); resumeTimer(); }
   }
-  function onLeave() { pauseTimer(); }
+  function onLeave() { pauseTimer(); if (errorTimer) { clearTimeout(errorTimer); errorTimer = null; } }
 
   window.addEventListener('resize', () => { if (cellEls.length) { sizeTangoBoard(); layoutMarkers(); } });
 
