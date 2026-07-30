@@ -870,6 +870,7 @@
 
     <div class="game-side">
       <div class="game-nav" id="sky-levels">
+        <button data-mode="easy">Lagano</button>
         <button data-mode="classic" class="active">Klasično</button>
         <button data-mode="pro">Pro</button>
       </div>
@@ -883,6 +884,7 @@
           <li>lijevi klik povećava, desni smanjuje visinu</li>
         </ul>
         <div style="margin-top:0.5rem">
+          <b>Lagano</b> — svi brojevi prikazani (lijevo, desno, gore i dolje).<br>
           <b>Klasično</b> — uvijek rješivo logikom bez pogađanja.<br>
           <b>Pro</b> — jedinstveno rješenje, ali ponekad traži pogađanje.
         </div>
@@ -2176,10 +2178,20 @@ const Sky = (() => {
 
   // Build a puzzle, keeping as few clues as possible. The acceptance test
   // depends on the mode:
+  //   easy    → keep ALL clues on every side (left/right/top/bottom)  [easiest]
   //   classic → must stay solvable by pure logic (logicSolve)  [no guessing]
   //   pro     → must keep a unique solution (countSolutions)   [may need guessing]
   // A logic-solvable puzzle is automatically unique, so classic is the stricter.
   function makePuzzle() {
+    if (mode === 'easy') {
+      // Every edge clue shown → simplest board; still guaranteed no-guess.
+      let c;
+      for (let attempt = 0; attempt < 400; attempt++) {
+        c = computeClues(generateSolution());
+        if (logicSolve(c)) return c;
+      }
+      return c;   // fallback (extremely rare)
+    }
     const classic = mode === 'classic';
     const solvable = cl => classic ? logicSolve(cl) : (countSolutions(cl, 2) === 1);
 
@@ -2391,7 +2403,7 @@ const Sky = (() => {
 
   /* ---------- Lifecycle ---------- */
   function init() {
-    for (const m of ['classic', 'pro']) {
+    for (const m of ['easy', 'classic', 'pro']) {
       try {
         const s = localStorage.getItem('sky-best-' + m);
         best[m] = s === null ? null : Number(s);
