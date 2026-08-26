@@ -31,8 +31,20 @@
       box-sizing: border-box;
     }
 
+    /* Sprječava "prazno" skrolanje / bounce kad sadržaj stane na ekran */
+    html {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
     body {
-      min-height: 100vh;
+      min-height: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       background-attachment: fixed;
       font-family: 'Segoe UI', system-ui, sans-serif;
