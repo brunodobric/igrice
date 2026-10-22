@@ -1,5 +1,5 @@
 /* Service Worker za PWA – Igrice */
-const CACHE_NAME = 'igrice-v1';
+const CACHE_NAME = 'igrice-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -26,8 +26,26 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Cache-first za iste origin zahtjeve
   if (event.request.method !== 'GET') return;
+
+  // Stranica (index.html): network-first, da korisnik uvijek dobije novu
+  // verziju igre; cache se koristi samo kad nema mreže.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() =>
+        caches.match(event.request).then((cached) => cached || caches.match('./index.html'))
+      )
+    );
+    return;
+  }
+
+  // Ostalo (ikone, manifest): cache-first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;

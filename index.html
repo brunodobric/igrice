@@ -162,7 +162,6 @@
     .game-side .score-card { min-width: 0; width: 100%; }
     .game-side .controls { width: 100%; flex-direction: column; }
     .game-side .controls button { width: 100%; }
-    .game-side .t-legend { max-width: none; width: 100%; text-align: left; }
     .game-side #m-levels,
     .game-side #sky-levels { width: 100%; justify-content: center; flex-wrap: wrap; }
     .game-side #m-levels button,
@@ -317,8 +316,6 @@
     .t-board {
       position: relative;
       display: grid;
-      grid-template-columns: repeat(6, 68px);
-      grid-template-rows: repeat(6, 68px);
       gap: 7px;
       padding: 1.2rem;
       background: rgba(255,255,255,0.05);
@@ -329,8 +326,6 @@
     }
 
     .t-cell {
-      width: 68px;
-      height: 68px;
       border-radius: 0.7rem;
       background: rgba(255,255,255,0.04);
       border: 2px solid rgba(255,255,255,0.1);
@@ -393,29 +388,6 @@
       border-color: #e94560;
       color: #e94560;
       box-shadow: 0 0 10px rgba(233,69,96,0.5);
-    }
-
-    .t-legend {
-      font-size: 0.8rem;
-      opacity: 0.7;
-      max-width: 420px;
-      text-align: center;
-      line-height: 1.45;
-    }
-
-    .t-legend b { color: #fff; opacity: 1; }
-
-    .t-legend ul {
-      margin: 0.45rem 0 0;
-      padding-left: 1.1rem;
-      list-style: none;
-    }
-
-    .t-legend li { margin: 0.2rem 0; }
-    .t-legend li::before {
-      content: '›';
-      margin-right: 0.4rem;
-      opacity: 0.5;
     }
 
     .score-card.mine-card .symbol { color: #e94560; }
@@ -486,8 +458,6 @@
     /* ---------- Neboderi (Skyscrapers) board ---------- */
     .sky-board {
       display: grid;
-      grid-template-columns: repeat(7, 62px);   /* N + 2 = 7 */
-      grid-template-rows: repeat(7, 62px);
       gap: 5px;
       padding: 1.2rem;
       background: rgba(255,255,255,0.05);
@@ -496,8 +466,6 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
-
-    .sky-corner { }
 
     .sky-clue {
       display: flex;
@@ -691,7 +659,6 @@
       .game-side .score-card { width: auto; min-width: 90px; }
       .game-side .controls { flex-direction: row; justify-content: center; }
       .game-side .controls button { width: auto; }
-      .game-side .t-legend { text-align: center; }
     }
 
     /* ---------- Mobile ---------- */
@@ -943,11 +910,14 @@ const sections   = {
   mines: document.getElementById('game-mines'),
   sky:   document.getElementById('game-sky')
 };
+let activeGame = 'ttt';
 navButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const game = btn.dataset.game;
+    activeGame = game;
     navButtons.forEach(b => b.classList.toggle('active', b === btn));
     Object.entries(sections).forEach(([k, el]) => el.classList.toggle('hidden', k !== game));
+    tttOverlay[game === 'ttt' ? 'resume' : 'suspend']();
     Tango[game === 'tango' ? 'onEnter' : 'onLeave']();
     Mines[game === 'mines' ? 'onEnter' : 'onLeave']();
     Sky[game === 'sky' ? 'onEnter' : 'onLeave']();
@@ -984,6 +954,26 @@ function addLongPress(el, action, delay = 600) {
   el.addEventListener('contextmenu', () => clearTimeout(timer));
 }
 
+// Result overlay shown after a short delay. The pending show is cancelled by
+// hide() (new game) and held back by suspend() while the game is not on screen,
+// so it can never pop up over a fresh board or over another game.
+function delayedOverlay(el) {
+  let timer = null, pending = false;
+  return {
+    show(delay) {
+      clearTimeout(timer);
+      pending = true;
+      timer = setTimeout(() => { timer = null; pending = false; el.classList.add('visible'); }, delay);
+    },
+    hide() {
+      clearTimeout(timer); timer = null; pending = false;
+      el.classList.remove('visible');
+    },
+    suspend() { clearTimeout(timer); timer = null; },
+    resume() { if (pending && !timer) { pending = false; el.classList.add('visible'); } }
+  };
+}
+
 /* ======================================================================
    KRIŽIĆ KRUŽIĆ
    ====================================================================== */
@@ -1007,6 +997,7 @@ const overlay    = document.getElementById('overlay');
 const resultEmoji = document.getElementById('result-emoji');
 const resultTitle = document.getElementById('result-title');
 const resultSub   = document.getElementById('result-sub');
+const tttOverlay  = delayedOverlay(overlay);
 
 function setStatus() {
   if (current === 'X') {
@@ -1041,7 +1032,7 @@ function showOverlay(winner) {
     resultTitle.textContent = `Pobijedio ${name}!`;
     resultSub.textContent   = 'Čestitke!';
   }
-  overlay.classList.add('visible');
+  tttOverlay.show(700);
 }
 
 function updateScoreCards() {
@@ -1081,7 +1072,7 @@ cells.forEach(cell => {
           : `<span class="highlight-o">${name} pobijedio!</span>`;
       }
       updateScoreCards();
-      setTimeout(() => showOverlay(result.winner), 700);
+      showOverlay(result.winner);
       return;
     }
 
@@ -1099,7 +1090,7 @@ function resetBoard() {
     c.textContent = '';
     c.className   = 'cell';
   });
-  overlay.classList.remove('visible');
+  tttOverlay.hide();
   setStatus();
   setActiveCard();
 }
@@ -1144,6 +1135,7 @@ const Tango = (() => {
   const finalTime = document.getElementById('t-final-time');
   const recordEl  = document.getElementById('t-record-badge');
   const finalSub  = document.getElementById('t-final-sub');
+  const overlay   = delayedOverlay(overlayEl);
 
   // State
   let cellEls = [];              // 36 cell divs
@@ -1187,25 +1179,12 @@ const Tango = (() => {
 
   /* ---------- Solver helpers ---------- */
   // Validity of placing value v at (r,c) given board b + running counts.
-  function ok(b, rowCnt, colCnt, r, c, v, cons) {
+  function ok(b, rowCnt, colCnt, r, c, v) {
     if (rowCnt[r][v] >= NEED) return false;
     if (colCnt[c][v] >= NEED) return false;
     // no three in a row (triple ending here)
     if (c >= 2 && b[idx(r, c - 1)] === v && b[idx(r, c - 2)] === v) return false;
     if (r >= 2 && b[idx(r - 1, c)] === v && b[idx(r - 2, c)] === v) return false;
-    // constraints with already-filled earlier neighbours
-    if (cons) {
-      if (c > 0) {
-        const t = cons[conKey(idx(r, c - 1), idx(r, c))];
-        const nv = b[idx(r, c - 1)];
-        if (t && nv) { if (t === '=' ? nv !== v : nv === v) return false; }
-      }
-      if (r > 0) {
-        const t = cons[conKey(idx(r - 1, c), idx(r, c))];
-        const nv = b[idx(r - 1, c)];
-        if (t && nv) { if (t === '=' ? nv !== v : nv === v) return false; }
-      }
-    }
     return true;
   }
 
@@ -1269,7 +1248,7 @@ const Tango = (() => {
       const r = Math.floor(pos / N), c = pos % N;
       const opts = Math.random() < 0.5 ? [SUN, MOON] : [MOON, SUN];
       for (const v of opts) {
-        if (ok(b, rowCnt, colCnt, r, c, v, null)) {
+        if (ok(b, rowCnt, colCnt, r, c, v)) {
           b[pos] = v; rowCnt[r][v]++; colCnt[c][v]++;
           if (rec(pos + 1)) return true;
           b[pos] = 0; rowCnt[r][v]--; colCnt[c][v]--;
@@ -1494,7 +1473,7 @@ const Tango = (() => {
     finalSub.textContent = isRecord
       ? 'Novi najbolji rezultat!'
       : (best !== null ? `Tvoj rekord je ${fmt(best)}.` : 'Bravo!');
-    setTimeout(() => overlayEl.classList.add('visible'), 500);
+    overlay.show(500);
   }
 
   function renderBest() { bestEl.textContent = best === null ? '—' : fmt(best); }
@@ -1537,7 +1516,7 @@ const Tango = (() => {
     values = given.slice();
     solved = false;
     resetTimer();
-    overlayEl.classList.remove('visible');
+    overlay.hide();
 
     buildCells();
     renderAll();
@@ -1558,9 +1537,12 @@ const Tango = (() => {
   let initialised = false;
   function onEnter() {
     if (!initialised) { initialised = true; init(); }
-    else { layoutMarkers(); resumeTimer(); }
+    else { layoutMarkers(); resumeTimer(); overlay.resume(); if (started && !solved) refresh(); }
   }
-  function onLeave() { pauseTimer(); if (errorTimer) { clearTimeout(errorTimer); errorTimer = null; } }
+  function onLeave() {
+    pauseTimer(); overlay.suspend();
+    if (errorTimer) { clearTimeout(errorTimer); errorTimer = null; }
+  }
 
   window.addEventListener('resize', () => { if (cellEls.length) { sizeTangoBoard(); layoutMarkers(); } });
 
@@ -1594,6 +1576,7 @@ const Mines = (() => {
   const finalTime = document.getElementById('m-final-time');
   const recordEl  = document.getElementById('m-record-badge');
   const finalSub  = document.getElementById('m-final-sub');
+  const overlay   = delayedOverlay(overlayEl);
 
   // State
   let level   = 'easy';
@@ -1601,7 +1584,7 @@ const Mines = (() => {
   let grid = [];                // {mine, adj, revealed, flagged}
   let cellEls = [];
   let firstClick = true;
-  let gameOver = false, won = false;
+  let gameOver = false;
   let flags = 0, revealedCount = 0;
   let flagMode = false;
   let mayNeedGuess = false;     // true only if a no-guess board couldn't be found in time
@@ -1863,7 +1846,7 @@ const Mines = (() => {
 
   /* ---------- End states ---------- */
   function lose(hit) {
-    gameOver = true; won = false;
+    gameOver = true;
     pauseTimer();
     for (let i = 0; i < rows * cols; i++) {
       if (grid[i].mine && !grid[i].flagged) { grid[i].revealed = true; renderCell(i); }
@@ -1876,12 +1859,12 @@ const Mines = (() => {
     finalTime.textContent = fmt(elapsed());
     recordEl.textContent = '';
     finalSub.textContent = 'Pokušaj ponovno!';
-    setTimeout(() => overlayEl.classList.add('visible'), 500);
+    overlay.show(500);
   }
 
   function checkWin() {
     if (revealedCount !== rows * cols - mineCount) return;
-    gameOver = true; won = true;
+    gameOver = true;
     pauseTimer();
     const ms = elapsed();
     // auto-flag remaining mines for a tidy finish
@@ -1904,7 +1887,7 @@ const Mines = (() => {
     finalSub.textContent = isRecord
       ? `Najbolji rezultat za razinu ${LEVELS[level].label}!`
       : (prev != null ? `Rekord (${LEVELS[level].label}): ${fmt(prev)}.` : 'Bravo!');
-    setTimeout(() => overlayEl.classList.add('visible'), 500);
+    overlay.show(500);
   }
 
   /* ---------- New game ---------- */
@@ -1912,10 +1895,10 @@ const Mines = (() => {
     const cfg = LEVELS[level];
     rows = cfg.rows; cols = cfg.cols; mineCount = cfg.mines;
     grid = Array.from({ length: rows * cols }, () => ({ mine: false, adj: 0, revealed: false, flagged: false }));
-    firstClick = true; gameOver = false; won = false;
+    firstClick = true; gameOver = false;
     flags = 0; revealedCount = 0;
     resetTimer();
-    overlayEl.classList.remove('visible');
+    overlay.hide();
     buildBoard();
     renderMines();
     statusEl.textContent = 'Klikni bilo koje polje za početak.';
@@ -1942,9 +1925,9 @@ const Mines = (() => {
   }
   function onEnter() {
     if (!initialised) { initialised = true; init(); }
-    else { resumeTimer(); }
+    else { resumeTimer(); overlay.resume(); }
   }
-  function onLeave() { pauseTimer(); }
+  function onLeave() { pauseTimer(); overlay.suspend(); }
 
   // level selector
   document.querySelectorAll('#m-levels button').forEach(btn => {
@@ -2005,6 +1988,7 @@ const Sky = (() => {
   const finalTime = document.getElementById('sky-final-time');
   const recordEl  = document.getElementById('sky-record-badge');
   const finalSub  = document.getElementById('sky-final-sub');
+  const overlay   = delayedOverlay(overlayEl);
 
   // State
   let cellEls = [];                  // N*N play cells
@@ -2353,7 +2337,7 @@ const Sky = (() => {
     finalSub.textContent = isRecord
       ? 'Novi najbolji rezultat!'
       : (prev != null ? `Tvoj rekord je ${fmt(prev)}.` : 'Bravo!');
-    setTimeout(() => overlayEl.classList.add('visible'), 500);
+    overlay.show(500);
   }
 
   function renderBest() {
@@ -2382,7 +2366,7 @@ const Sky = (() => {
     values = new Array(N * N).fill(0);
     solved = false;
     resetTimer();
-    overlayEl.classList.remove('visible');
+    overlay.hide();
     cellEls.forEach(el => el.classList.remove('solved', 'error'));
     renderClues();
     renderAll();
@@ -2405,9 +2389,9 @@ const Sky = (() => {
   let initialised = false;
   function onEnter() {
     if (!initialised) { initialised = true; init(); }
-    else { resumeTimer(); }
+    else { resumeTimer(); overlay.resume(); }
   }
-  function onLeave() { pauseTimer(); }
+  function onLeave() { pauseTimer(); overlay.suspend(); }
 
   // difficulty selector: KLASIČNO (no-guess) / PRO (unique-only)
   document.querySelectorAll('#sky-levels button').forEach(btn => {
@@ -2427,6 +2411,14 @@ const Sky = (() => {
 
   return { onEnter, onLeave };
 })();
+
+/* ======================================================================
+   BACKGROUND PAUSE  (screen locked / app switched → timers stop)
+   ====================================================================== */
+document.addEventListener('visibilitychange', () => {
+  const game = { tango: Tango, mines: Mines, sky: Sky }[activeGame];
+  if (game) game[document.hidden ? 'onLeave' : 'onEnter']();
+});
 </script>
 
 <script>
@@ -2434,7 +2426,6 @@ const Sky = (() => {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW registered:', reg.scope))
         .catch(err => console.warn('SW registration failed:', err));
     });
   }
