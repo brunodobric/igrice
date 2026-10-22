@@ -65,6 +65,7 @@
       --glass-on: rgba(255,255,255,0.20);
       --nav-glass: rgba(22,30,52,0.72);
       --nav-shadow: rgba(0,0,0,0.45);
+      --nav-under: #141b2f;
       --scrim: rgba(5,8,16,0.62);
       --n1: #4cc9f0; --n2: #5be49b; --n3: #ff5d73; --n4: #b892ff;
       --n5: #ffc145; --n6: #3dd6c6; --n7: #f1f4fa; --n8: #a3aecb;
@@ -91,6 +92,7 @@
       --glass-on: rgba(20,26,43,0.10);
       --nav-glass: rgba(255,255,255,0.72);
       --nav-shadow: rgba(20,26,43,0.16);
+      --nav-under: #fcfcfd;
       --scrim: rgba(20,26,43,0.38);
       --n1: #0878a0; --n2: #1e8a5c; --n3: #c92e4a; --n4: #6b3fc9;
       --n5: #a66c00; --n6: #0e7c86; --n7: #141a2b; --n8: #56607a;
@@ -101,14 +103,14 @@
       height: 100%;
       overflow: hidden;
       overscroll-behavior: none;
-      background-color: var(--bg);
+      /* iOS PWA: prikaz stranice zna biti kraći od ekrana. Prostor ispod njega
+         bojimo kao donju traku da traka izgleda kao da ide do dna. */
+      background: linear-gradient(var(--bg), var(--bg)) no-repeat top left / 100% 100%, var(--nav-under);
     }
 
     body {
       position: fixed;
       inset: 0;
-      /* u iOS PWA-u prikaz zna biti kraći od ekrana; JS tada postavi punu visinu */
-      height: var(--app-h, auto);
       overflow: hidden;
       overscroll-behavior: none;
       background: var(--bg);
@@ -116,7 +118,7 @@
       font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased;
       --hud-h: calc(env(safe-area-inset-top, 0px) + 78px);
-      --nav-h: calc(env(safe-area-inset-bottom, 0px) + 66px);
+      --nav-h: calc(var(--safe-b, env(safe-area-inset-bottom, 0px)) + 66px);
     }
 
     .sr-only {
@@ -590,8 +592,8 @@
       bottom: 0;
       margin: 0 auto;
       width: min(100%, 520px);
-      height: calc(env(safe-area-inset-bottom, 0px) + 66px);
-      padding: 5px 10px calc(env(safe-area-inset-bottom, 0px) + 1px);
+      height: calc(var(--safe-b, env(safe-area-inset-bottom, 0px)) + 66px);
+      padding: 5px 10px calc(var(--safe-b, env(safe-area-inset-bottom, 0px)) + 1px);
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 2px;
@@ -990,17 +992,14 @@ function boardFit(cols, maxCell, gap, pad, minCell, rows = cols) {
   return Math.max(minCell, Math.min(maxCell, sw, sh));
 }
 
-// iOS PWA (standalone): prikaz zna biti kraći od ekrana pa traka ostane iznad dna.
-// Tada aplikaciji dajemo punu visinu ekrana.
-function fitAppHeight() {
+// iOS PWA: kad je prikaz kraći od ekrana, prostor ispod njega već služi kao
+// donja sigurna zona (home indicator), pa traka ne treba vlastiti padding.
+function fitViewportGap() {
   const standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-  const full = window.screen.height;
+  const gap = window.screen.height - window.innerHeight;
   const root = document.documentElement.style;
-  if (standalone && window.innerHeight > window.innerWidth && full > window.innerHeight && full - window.innerHeight < 120) {
-    root.setProperty('--app-h', full + 'px');
-  } else {
-    root.removeProperty('--app-h');
-  }
+  if (standalone && window.innerHeight > window.innerWidth && gap > 20 && gap < 120) root.setProperty('--safe-b', '0px');
+  else root.removeProperty('--safe-b');
 }
 
 function fitTicTacToe() {
@@ -1179,7 +1178,7 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 
 setStatus();
 setActiveCard();
-function fitLayout() { fitAppHeight(); fitTicTacToe(); }
+function fitLayout() { fitViewportGap(); fitTicTacToe(); }
 fitLayout();
 window.addEventListener('resize', fitLayout);
 
