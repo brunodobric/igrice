@@ -50,11 +50,11 @@
       background-color: #1a1a2e;
       font-family: 'Segoe UI', system-ui, sans-serif;
       color: #fff;
-      /* prostor za home indicator na iPhoneu */
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      /* prostor za donju traku s igrama + home indicator na iPhoneu */
+      padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
     }
 
-    /* fixed header: title + game menu always at the same height */
+    /* sticky header with the title */
     .topbar {
       position: sticky;
       top: 0;
@@ -98,7 +98,47 @@
       100% { background-position: 200% }
     }
 
-    /* ---------- Game navigation ---------- */
+    /* ---------- Game navigation: tab bar at the bottom ---------- */
+    .tabbar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 20;
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.4rem 0.5rem;
+      padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
+      background: rgba(18, 26, 46, 0.92);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 -6px 24px rgba(0,0,0,0.35);
+    }
+
+    .tabbar button {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.45rem 0.2rem;
+      border-radius: 0.9rem;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.72rem;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tabbar .tab-icon { font-size: 1.35rem; line-height: 1; }
+    .tabbar button:not(.active) .tab-icon { opacity: 0.6; }
+
+    .tabbar button.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(233,69,96,0.25), rgba(83,216,251,0.25));
+    }
+
+    /* pill selector (difficulty levels) */
     .game-nav {
       display: flex;
       gap: 0.6rem;
@@ -688,13 +728,6 @@
 
 <header class="topbar">
   <h1 id="main-title">Igrice</h1>
-
-  <nav class="game-nav">
-    <button data-game="ttt" class="active">Križić Kružić</button>
-    <button data-game="tango">Tango</button>
-    <button data-game="mines">Minolovac</button>
-    <button data-game="sky">Neboderi</button>
-  </nav>
 </header>
 
 <main class="container">
@@ -853,6 +886,13 @@
   </section>
 </main>
 
+<nav class="tabbar">
+  <button data-game="ttt" class="active"><span class="tab-icon">✕</span>Križić Kružić</button>
+  <button data-game="tango"><span class="tab-icon">☀</span>Tango</button>
+  <button data-game="mines"><span class="tab-icon">💣</span>Minolovac</button>
+  <button data-game="sky"><span class="tab-icon">🏙️</span>Neboderi</button>
+</nav>
+
 <!-- Tic-tac-toe overlay -->
 <div class="overlay" id="overlay">
   <div class="result-card">
@@ -903,7 +943,7 @@
 /* ======================================================================
    GAME SWITCHER
    ====================================================================== */
-const navButtons = document.querySelectorAll('nav.game-nav button');
+const navButtons = document.querySelectorAll('nav.tabbar button');
 const sections   = {
   ttt:   document.getElementById('game-ttt'),
   tango: document.getElementById('game-tango'),
