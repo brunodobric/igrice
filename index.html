@@ -21,8 +21,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Igrice">
   <meta name="application-name" content="Igrice">
-  <meta name="theme-color" content="#1a1a2e">
-  <meta name="msapplication-TileColor" content="#1a1a2e">
+  <meta name="theme-color" content="#0f3460">
+  <meta name="msapplication-TileColor" content="#0f3460">
   <meta name="msapplication-TileImage" content="icon-192.png">
 
   <!-- tema se postavlja prije prikaza da nema treptanja -->
@@ -46,8 +46,9 @@
     /* ---------- Teme ---------- */
     :root {
       color-scheme: dark;
-      --bg: #1a1a2e;
-      --bg-2: #16213e;
+      /* tamna tema: jednolična pozadina (boja dna nekadašnjeg gradijenta) */
+      --bg: #0f3460;
+      --bg-2: #0f3460;
       --bg-3: #0f3460;
       --surf: #182036;
       --surf2: #222c47;
@@ -2654,7 +2655,7 @@ if (!['auto', 'dark', 'light'].includes(themePref)) themePref = 'auto';
 function applyTheme() {
   const light = themePref === 'light' || (themePref === 'auto' && lightQuery.matches);
   document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
-  themeMeta.setAttribute('content', light ? '#f7f8fc' : '#1a1a2e');
+  themeMeta.setAttribute('content', light ? '#f7f8fc' : '#0f3460');
   document.querySelectorAll('#theme-seg button').forEach(b =>
     b.classList.toggle('active', b.dataset.themePref === themePref));
 }
