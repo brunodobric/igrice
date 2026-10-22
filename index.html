@@ -18,7 +18,7 @@
   <!-- iOS / Apple "Add to Home Screen" -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Igrice">
   <meta name="application-name" content="Igrice">
   <meta name="theme-color" content="#0d1321">
@@ -66,7 +66,6 @@
       --nav-glass: rgba(22,30,52,0.72);
       --nav-shadow: rgba(0,0,0,0.45);
       --scrim: rgba(5,8,16,0.62);
-      --statusbar: transparent;
       --n1: #4cc9f0; --n2: #5be49b; --n3: #ff5d73; --n4: #b892ff;
       --n5: #ffc145; --n6: #3dd6c6; --n7: #f1f4fa; --n8: #a3aecb;
     }
@@ -93,7 +92,6 @@
       --nav-glass: rgba(255,255,255,0.72);
       --nav-shadow: rgba(20,26,43,0.16);
       --scrim: rgba(20,26,43,0.38);
-      --statusbar: #141a2b;
       --n1: #0878a0; --n2: #1e8a5c; --n3: #c92e4a; --n4: #6b3fc9;
       --n5: #a66c00; --n6: #0e7c86; --n7: #141a2b; --n8: #56607a;
     }
@@ -115,8 +113,8 @@
       color: var(--text);
       font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased;
-      --hud-h: calc(env(safe-area-inset-top, 0px) + 62px);
-      --nav-h: calc(env(safe-area-inset-bottom, 0px) + 82px);
+      --hud-h: calc(env(safe-area-inset-top, 0px) + 78px);
+      --nav-h: calc(env(safe-area-inset-bottom, 0px) + 66px);
     }
 
     .sr-only {
@@ -132,7 +130,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: env(safe-area-inset-top, 0px);
-      background: var(--statusbar);
+      background: var(--bg);
       z-index: 30;
     }
 
@@ -146,7 +144,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 16px 8px;
+      padding: 26px 16px 8px;
       z-index: 20;
     }
 
@@ -587,20 +585,21 @@
     .tabbar {
       position: fixed;
       left: 0; right: 0;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      bottom: 0;
       margin: 0 auto;
-      width: min(calc(100% - 32px), 440px);
-      height: 64px;
-      padding: 5px;
+      width: min(100%, 520px);
+      height: calc(env(safe-area-inset-bottom, 0px) + 66px);
+      padding: 5px 10px calc(env(safe-area-inset-bottom, 0px) + 1px);
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 2px;
-      border-radius: 32px;
+      border-radius: 26px 26px 0 0;
       background: var(--nav-glass);
       border: 1px solid var(--glass-line);
+      border-bottom: none;
       -webkit-backdrop-filter: blur(24px) saturate(170%);
       backdrop-filter: blur(24px) saturate(170%);
-      box-shadow: 0 10px 30px var(--nav-shadow);
+      box-shadow: 0 -6px 24px var(--nav-shadow);
       z-index: 20;
     }
 
