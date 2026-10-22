@@ -1,5 +1,5 @@
 /* Service Worker za PWA – Igrice */
-const CACHE_NAME = 'igrice-v7';
+const CACHE_NAME = 'igrice-v8';
 const ASSETS = [
   './',
   './index.html',
