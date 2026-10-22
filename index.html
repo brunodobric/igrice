@@ -21,9 +21,21 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Igrice">
   <meta name="application-name" content="Igrice">
-  <meta name="theme-color" content="#16213e">
-  <meta name="msapplication-TileColor" content="#16213e">
+  <meta name="theme-color" content="#0d1321">
+  <meta name="msapplication-TileColor" content="#0d1321">
   <meta name="msapplication-TileImage" content="icon-192.png">
+
+  <!-- tema se postavlja prije prikaza da nema treptanja -->
+  <script>
+    (function () {
+      var light = false;
+      try {
+        var p = localStorage.getItem('igrice-theme') || 'auto';
+        light = p === 'light' || (p === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches);
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+    })();
+  </script>
   <style>
     * {
       margin: 0;
@@ -31,315 +43,329 @@
       box-sizing: border-box;
     }
 
-    /* Ispuni cijeli ekran (uklj. iPhone safe area) + smanji bounce */
+    /* ---------- Teme ---------- */
+    :root {
+      color-scheme: dark;
+      --bg: #0d1321;
+      --surf: #182036;
+      --surf2: #222c47;
+      --line: #2e3a5c;
+      --text: #f1f4fa;
+      --muted: #a3aecb;
+      --accent: #ff5d73;
+      --on-accent: #0d1321;
+      --cyan: #4cc9f0;
+      --gold: #ffc145;
+      --sun: #ffc145;
+      --hidden: #2a3552;
+      --open: #0f1628;
+      --good: #5be49b;
+      --glass: rgba(255,255,255,0.07);
+      --glass-line: rgba(255,255,255,0.14);
+      --glass-on: rgba(255,255,255,0.20);
+      --nav-glass: rgba(22,30,52,0.72);
+      --nav-shadow: rgba(0,0,0,0.45);
+      --scrim: rgba(5,8,16,0.62);
+      --statusbar: transparent;
+      --n1: #4cc9f0; --n2: #5be49b; --n3: #ff5d73; --n4: #b892ff;
+      --n5: #ffc145; --n6: #3dd6c6; --n7: #f1f4fa; --n8: #a3aecb;
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f3f5fa;
+      --surf: #ffffff;
+      --surf2: #e6eaf3;
+      --line: #d5dbe8;
+      --text: #141a2b;
+      --muted: #56607a;
+      --accent: #c92e4a;
+      --on-accent: #ffffff;
+      --cyan: #0878a0;
+      --gold: #a66c00;
+      --sun: #e9a21b;
+      --hidden: #d5dbe8;
+      --open: #f3f5fa;
+      --good: #1e8a5c;
+      --glass: rgba(255,255,255,0.70);
+      --glass-line: rgba(20,26,43,0.10);
+      --glass-on: rgba(20,26,43,0.10);
+      --nav-glass: rgba(255,255,255,0.72);
+      --nav-shadow: rgba(20,26,43,0.16);
+      --scrim: rgba(20,26,43,0.38);
+      --statusbar: #141a2b;
+      --n1: #0878a0; --n2: #1e8a5c; --n3: #c92e4a; --n4: #6b3fc9;
+      --n5: #a66c00; --n6: #0e7c86; --n7: #141a2b; --n8: #56607a;
+    }
+
+    /* Ispuni cijeli ekran (uklj. iPhone safe area); ništa se ne scrolla */
     html {
+      height: 100%;
+      overflow: hidden;
       overscroll-behavior: none;
-      /* ista boja kao početak gradienta – nema bijele trake ispod */
-      background-color: #1a1a2e;
+      background-color: var(--bg);
     }
 
     body {
-      min-height: 100vh;
-      min-height: 100dvh;
-      min-height: -webkit-fill-available;
-      overflow-x: hidden;
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: touch;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      background-attachment: fixed;
-      background-color: #1a1a2e;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      color: #fff;
-      /* prostor za donju traku s igrama + home indicator na iPhoneu */
-      padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
-    }
-
-    /* sticky header with the title */
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.25rem 1rem;
-      /* keep the title clear of the notch / Dynamic Island */
-      padding-top: calc(1.25rem + env(safe-area-inset-top));
-      background: rgba(18, 26, 46, 0.82);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-      padding: 2rem 1.5rem;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: linear-gradient(90deg, #e94560, #0f3460, #53d8fb);
-      background-size: 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: shimmer 3s infinite linear;
-    }
-
-    @keyframes shimmer {
-      0%   { background-position: 0% }
-      100% { background-position: 200% }
-    }
-
-    /* ---------- Game navigation: tab bar at the bottom ---------- */
-    .tabbar {
       position: fixed;
-      left: 0; right: 0; bottom: 0;
-      z-index: 20;
-      display: flex;
-      gap: 0.25rem;
-      padding: 0.4rem 0.5rem;
-      padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
-      background: rgba(18, 26, 46, 0.92);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 -6px 24px rgba(0,0,0,0.35);
+      inset: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      --hud-h: calc(env(safe-area-inset-top, 0px) + 62px);
+      --nav-h: calc(env(safe-area-inset-bottom, 0px) + 82px);
     }
 
-    .tabbar button {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.45rem 0.2rem;
-      border-radius: 0.9rem;
-      background: transparent;
-      color: rgba(255,255,255,0.55);
-      font-size: 0.72rem;
-      letter-spacing: 0.03em;
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
       white-space: nowrap;
-      transition: background 0.2s, color 0.2s;
+    }
+
+    /* traka iza statusne trake iPhonea (PWA) – u svijetloj temi tamna da se sat vidi */
+    .safe-top {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: env(safe-area-inset-top, 0px);
+      background: var(--statusbar);
+      z-index: 30;
+    }
+
+    /* ---------- Gornji red: postavke · brojke · upute ---------- */
+    .hud {
+      position: fixed;
+      top: env(safe-area-inset-top, 0px);
+      left: 0; right: 0;
+      margin: 0 auto;
+      width: min(100%, 520px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px 8px;
+      z-index: 20;
+    }
+
+    .round-btn {
+      flex: none;
+      width: 44px; height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--glass);
+      border: 1px solid var(--glass-line);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(160%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0;
+      transition: transform 0.15s, background 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
+    .round-btn svg { display: block; }
+    #btn-info { color: var(--cyan); }
+    .round-btn[aria-expanded="true"] { background: var(--glass-on); }
 
-    .tabbar .tab-icon { font-size: 1.35rem; line-height: 1; }
-    .tabbar button:not(.active) .tab-icon { opacity: 0.6; }
-
-    .tabbar button.active {
-      color: #fff;
-      background: linear-gradient(135deg, rgba(233,69,96,0.25), rgba(83,216,251,0.25));
-    }
-
-    /* pill selector (difficulty levels) */
-    .game-nav {
+    .stats {
+      flex: 1;
+      min-width: 0;
+      height: 44px;
+      border-radius: 22px;
+      background: var(--glass);
+      border: 1px solid var(--glass-line);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(160%);
       display: flex;
-      gap: 0.6rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 2rem;
-      padding: 0.35rem;
-      backdrop-filter: blur(8px);
+      align-items: center;
+      padding: 0 4px;
     }
 
-    .game-nav button {
-      padding: 0.55rem 1.4rem;
-      border-radius: 2rem;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.65);
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+    .stat-group { display: none; flex: 1; align-items: center; justify-content: space-around; }
+    body[data-game="ttt"]   .stat-group[data-for="ttt"],
+    body[data-game="tango"] .stat-group[data-for="tango"],
+    body[data-game="mines"] .stat-group[data-for="mines"],
+    body[data-game="sky"]   .stat-group[data-for="sky"] { display: flex; }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      padding: 5px 12px;
+      border-radius: 16px;
+      border: 1.5px solid transparent;
+      font-size: 16px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .stat svg { flex: none; display: block; }
+    .stat .sym { font-size: 17px; font-weight: 800; line-height: 1; }
+    .stat.x-stat .sym { color: var(--accent); }
+    .stat.o-stat .sym { color: var(--cyan); }
+    .stat.draw-stat .sym { color: var(--gold); }
+    .stat.time-stat svg { color: var(--cyan); }
+    .stat.best-stat { color: var(--gold); }
+    .stat.mine-stat svg { color: var(--accent); }
+    /* igrač na potezu */
+    .stat.active { background: var(--glass-on); border-color: var(--text); }
+    .stat.x-stat.active { border-color: var(--accent); }
+    .stat.o-stat.active { border-color: var(--cyan); }
+
+    .mono { font-variant-numeric: tabular-nums; }
+
+    /* ---------- Prostor za igru (između gornjeg reda i donje trake) ---------- */
+    .stage {
+      position: fixed;
+      left: 0; right: 0;
+      top: var(--hud-h);
+      bottom: var(--nav-h);
+      overflow: hidden;
     }
 
-    .game-nav button.active {
-      background: linear-gradient(135deg, #e94560, #53d8fb);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(83,216,251,0.3);
-    }
-
-    /* two-column layout: options/instructions left, game board right */
     .game {
+      height: 100%;
       display: flex;
-      flex-direction: row;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      gap: 2.5rem;
+      gap: 14px;
+      padding: 0 12px;
     }
     .game.hidden { display: none; }
 
-    .game-side {
+    .actions {
       display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      width: 260px;
-      flex-shrink: 0;
-    }
-
-    .game-main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.25rem;
-    }
-
-    /* inside the side panel: stat cards stack vertically & fill the column */
-    .game-side .scoreboard {
-      flex-direction: column;
-      gap: 0.75rem;
+      gap: 10px;
+      height: 48px;
       width: 100%;
+      max-width: 420px;
     }
-    .game-side .score-card { min-width: 0; width: 100%; }
-    .game-side .controls { width: 100%; flex-direction: column; }
-    .game-side .controls button { width: 100%; }
-    .game-side #m-levels,
-    .game-side #sky-levels { width: 100%; justify-content: center; flex-wrap: wrap; }
-    .game-side #m-levels button,
-    .game-side #sky-levels button { padding: 0.5rem 0.9rem; }
 
-    /* ---------- Shared cards ---------- */
-    .scoreboard {
+    .pill-btn {
+      flex: 1;
+      min-width: 0;
+      padding: 0 1rem;
+      border-radius: 24px;
+      background: var(--glass);
+      border: 1px solid var(--glass-line);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .fab {
+      flex: none;
+      width: 48px; height: 48px;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--on-accent);
       display: flex;
-      gap: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .fab svg { display: block; }
+
+    /* segmentirani prekidač (razina, tema, način igre) */
+    .seg {
+      flex: 1;
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      border-radius: 14px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+    }
+    .seg button {
+      flex: 1;
+      padding: 0.55rem 0.4rem;
+      border-radius: 11px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+    .seg button.active { background: var(--surf); color: var(--text); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
+    .actions .seg { border-radius: 24px; background: var(--glass); border-color: var(--glass-line); }
+    .actions .seg button { border-radius: 21px; font-size: 15px; }
+    .actions .seg button.active { background: var(--surf2); box-shadow: none; }
+
+    /* ---------- Ploče ---------- */
+    .board, .t-board, .m-board, .sky-board {
+      background: var(--surf);
+      border: 1px solid var(--line);
+      border-radius: 18px;
     }
 
-    .score-card {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 1rem;
-      padding: 0.75rem 1.5rem;
-      text-align: center;
-      min-width: 90px;
-      backdrop-filter: blur(8px);
-      transition: transform 0.2s;
-    }
-
-    .score-card.active {
-      border-color: #53d8fb;
-      box-shadow: 0 0 16px rgba(83,216,251,0.3);
-      transform: scale(1.06);
-    }
-
-    .score-card .label {
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0.6;
-      margin-bottom: 0.25rem;
-    }
-
-    .score-card .symbol {
-      font-size: 1.4rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .score-card.x-card .symbol { color: #e94560; }
-    .score-card.o-card .symbol { color: #53d8fb; }
-    .score-card.draw-card .symbol { color: #f0a500; font-size: 1.1rem; }
-    .score-card.time-card .symbol { color: #53d8fb; }
-    .score-card.best-card .symbol { color: #f0a500; }
-
-    .score-card .value {
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
-
-    .score-card .value.mono {
-      font-variant-numeric: tabular-nums;
-      font-family: 'Consolas', 'Segoe UI', monospace;
-    }
-
-    .status-bar {
-      font-size: 1.15rem;
-      letter-spacing: 0.05em;
-      opacity: 0.85;
-      height: 1.5em;
-      text-align: center;
-      transition: opacity 0.3s;
-    }
-
-    .status-bar .highlight-x { color: #e94560; font-weight: 700; }
-    .status-bar .highlight-o { color: #53d8fb; font-weight: 700; }
-
-    /* ---------- Tic-tac-toe board ---------- */
+    /* Križić Kružić */
     .board {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 1.5rem;
-      background: rgba(255,255,255,0.05);
-      border-radius: 1.5rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      grid-template-columns: repeat(3, auto);
+      gap: 10px;
+      padding: 15px;
     }
 
     .cell {
-      width: clamp(74px, 27vw, 130px);
-      height: clamp(74px, 27vw, 130px);
-      border-radius: 1rem;
-      background: rgba(255,255,255,0.04);
-      border: 2px solid rgba(255,255,255,0.1);
+      --s: var(--ttt-cell, 90px);
+      width: var(--s);
+      height: var(--s);
+      border-radius: 16px;
+      background: var(--open);
+      border: 2px solid transparent;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: clamp(2rem, 10vw, 3.6rem);
-      font-weight: 900;
+      font-size: calc(var(--s) * 0.5);
+      font-weight: 800;
       transition: background 0.15s, border-color 0.15s, transform 0.1s;
       user-select: none;
       position: relative;
       overflow: hidden;
     }
 
-    .cell:hover:not(.taken) {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.3);
-      transform: scale(1.04);
-    }
-
+    .cell:hover:not(.taken) { border-color: var(--line); }
     .cell.taken { cursor: default; }
 
     .cell.x {
-      color: #e94560;
-      border-color: rgba(233,69,96,0.4);
-      background: rgba(233,69,96,0.08);
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+      background: color-mix(in srgb, var(--accent) 9%, var(--open));
     }
 
     .cell.o {
-      color: #53d8fb;
-      border-color: rgba(83,216,251,0.4);
-      background: rgba(83,216,251,0.08);
+      color: var(--cyan);
+      border-color: color-mix(in srgb, var(--cyan) 40%, transparent);
+      background: color-mix(in srgb, var(--cyan) 9%, var(--open));
     }
 
     .cell.winner { animation: pulse-win 0.6s ease-in-out infinite alternate; }
 
     .cell.x.winner {
-      background: rgba(233,69,96,0.2);
-      border-color: #e94560;
-      box-shadow: 0 0 20px rgba(233,69,96,0.5);
+      background: color-mix(in srgb, var(--accent) 22%, var(--open));
+      border-color: var(--accent);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 50%, transparent);
     }
 
     .cell.o.winner {
-      background: rgba(83,216,251,0.2);
-      border-color: #53d8fb;
-      box-shadow: 0 0 20px rgba(83,216,251,0.5);
+      background: color-mix(in srgb, var(--cyan) 22%, var(--open));
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 50%, transparent);
     }
 
     @keyframes pulse-win {
       from { transform: scale(1); }
-      to   { transform: scale(1.07); }
+      to   { transform: scale(1.06); }
     }
 
     .cell.pop, .t-cell.pop {
@@ -352,23 +378,18 @@
       100% { transform: scale(1);   opacity: 1;   }
     }
 
-    /* ---------- Tango board ---------- */
+    /* Tango */
     .t-board {
       position: relative;
       display: grid;
-      gap: 7px;
-      padding: 1.2rem;
-      background: rgba(255,255,255,0.05);
-      border-radius: 1.5rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      gap: 6px;
+      padding: 10px;
     }
 
     .t-cell {
-      border-radius: 0.7rem;
-      background: rgba(255,255,255,0.04);
-      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      background: var(--open);
+      border: 2px solid transparent;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -379,132 +400,101 @@
       user-select: none;
     }
 
-    .t-cell:hover:not(.given) {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.3);
-      transform: scale(1.05);
-    }
+    .t-cell:hover:not(.given) { border-color: var(--line); }
 
-    .t-cell.given {
-      cursor: default;
-      background: rgba(255,255,255,0.09);
-      border-color: rgba(255,255,255,0.18);
-    }
+    .t-cell.given { cursor: default; background: var(--surf2); }
 
-    .t-cell.sun  { color: #f0a500; }
-    .t-cell.moon { color: #53d8fb; }
+    .t-cell.sun  { color: var(--sun); }
+    .t-cell.moon { color: var(--cyan); }
 
     .t-cell.error {
-      border-color: #e94560;
-      box-shadow: 0 0 12px rgba(233,69,96,0.45);
-      background: rgba(233,69,96,0.12);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
+      background: color-mix(in srgb, var(--accent) 12%, var(--open));
     }
 
     .t-cell.solved {
-      border-color: rgba(83,216,251,0.6);
-      box-shadow: 0 0 14px rgba(83,216,251,0.35);
+      border-color: color-mix(in srgb, var(--cyan) 60%, transparent);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--cyan) 35%, transparent);
     }
 
-    /* constraint markers between cells */
+    /* znakovi = i × između polja */
     .t-marker {
       position: absolute;
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.15rem;
-      font-weight: 300;
-      background: #16213e;
-      border: 1.5px solid rgba(255,255,255,0.55);
-      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1;
+      background: var(--bg);
+      border: 1.5px solid var(--muted);
+      color: var(--text);
       transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: 2;
     }
 
     .t-marker.bad {
-      border-color: #e94560;
-      color: #e94560;
-      box-shadow: 0 0 10px rgba(233,69,96,0.5);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
     }
 
-    .score-card.mine-card .symbol { color: #e94560; }
-
-    /* ---------- Minolovac board ---------- */
+    /* Minolovac */
     .m-board {
       display: grid;
-      gap: 4px;
-      padding: 1rem;
-      background: rgba(255,255,255,0.05);
-      border-radius: 1.5rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      --m-size: 34px;
+      gap: 2px;
+      padding: 6px;
+      --m-size: 20px;
     }
 
     .m-cell {
       width: var(--m-size);
       height: var(--m-size);
-      border-radius: 0.35rem;
-      background: rgba(255,255,255,0.09);
-      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 4px;
+      background: var(--hidden);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: calc(var(--m-size) * 0.5);
+      font-size: calc(var(--m-size) * 0.55);
       font-weight: 800;
       line-height: 1;
       user-select: none;
-      transition: background 0.1s, transform 0.05s;
+      transition: background 0.1s;
     }
 
-    .m-cell:hover:not(.revealed) {
-      background: rgba(255,255,255,0.18);
-      transform: scale(1.06);
-    }
+    .m-cell:hover:not(.revealed) { background: color-mix(in srgb, var(--hidden) 80%, var(--text)); }
 
-    .m-cell.revealed {
-      background: rgba(255,255,255,0.03);
-      border-color: rgba(255,255,255,0.07);
-      cursor: default;
-    }
+    .m-cell.revealed { background: var(--open); cursor: default; }
 
-    .m-cell.flag { color: #f0a500; }
+    .m-cell.flag { color: var(--accent); }
 
-    .m-cell.mine.revealed { background: rgba(233,69,96,0.15); }
+    .m-cell.mine.revealed { background: color-mix(in srgb, var(--accent) 18%, var(--open)); }
     .m-cell.exploded {
-      background: rgba(233,69,96,0.55) !important;
-      border-color: #e94560;
-      box-shadow: 0 0 12px rgba(233,69,96,0.6);
+      background: color-mix(in srgb, var(--accent) 60%, var(--open)) !important;
+      box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
     }
-    .m-cell.wrong { background: rgba(233,69,96,0.12); }
+    .m-cell.wrong { background: color-mix(in srgb, var(--accent) 14%, var(--hidden)); }
 
-    /* number colours */
-    .m-cell.n1 { color: #53d8fb; }
-    .m-cell.n2 { color: #43d17a; }
-    .m-cell.n3 { color: #e94560; }
-    .m-cell.n4 { color: #b57bff; }
-    .m-cell.n5 { color: #f0a500; }
-    .m-cell.n6 { color: #2fd7c4; }
-    .m-cell.n7 { color: #ff8fab; }
-    .m-cell.n8 { color: #c9c9c9; }
+    .m-cell.n1 { color: var(--n1); }
+    .m-cell.n2 { color: var(--n2); }
+    .m-cell.n3 { color: var(--n3); }
+    .m-cell.n4 { color: var(--n4); }
+    .m-cell.n5 { color: var(--n5); }
+    .m-cell.n6 { color: var(--n6); }
+    .m-cell.n7 { color: var(--n7); }
+    .m-cell.n8 { color: var(--n8); }
 
-    .score-card.sky-card .symbol { color: #53d8fb; }
-
-    /* ---------- Neboderi (Skyscrapers) board ---------- */
+    /* Neboderi */
     .sky-board {
       display: grid;
       gap: 5px;
-      padding: 1.2rem;
-      background: rgba(255,255,255,0.05);
-      border-radius: 1.5rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      padding: 10px;
     }
 
     .sky-clue {
@@ -513,118 +503,210 @@
       justify-content: center;
       font-size: 1.25rem;
       font-weight: 800;
-      color: #f0a500;
-      opacity: 0.85;
+      color: var(--gold);
       user-select: none;
     }
 
     .sky-clue.bad {
-      color: #e94560;
-      opacity: 1;
-      text-shadow: 0 0 10px rgba(233,69,96,0.6);
+      color: var(--accent);
+      text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
     }
 
     .sky-cell {
       position: relative;
       overflow: hidden;
-      border-radius: 0.6rem;
-      background: rgba(255,255,255,0.04);
-      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      background: var(--open);
+      border: 1.5px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       font-size: 1.7rem;
       font-weight: 800;
-      color: #fff;
+      color: var(--text);
       user-select: none;
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      transition: background 0.15s, border-color 0.15s;
     }
 
-    .sky-cell:hover {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.3);
-      transform: scale(1.05);
-    }
+    .sky-cell:hover { border-color: var(--muted); }
 
     .sky-fill {
       position: absolute;
       left: 0; right: 0; bottom: 0;
       height: 0;
-      background: linear-gradient(to top, #0f3460, #53d8fb);
-      opacity: 0.5;
+      background: var(--cyan);
+      opacity: 0.25;
       z-index: 0;
       transition: height 0.2s;
     }
 
-    .sky-cell span {
-      position: relative;
-      z-index: 1;
-    }
+    .sky-cell span { position: relative; z-index: 1; }
 
     .sky-cell.error {
-      border-color: #e94560;
-      box-shadow: 0 0 12px rgba(233,69,96,0.45);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
     }
 
     .sky-cell.solved {
-      border-color: rgba(83,216,251,0.6);
-      box-shadow: 0 0 14px rgba(83,216,251,0.35);
+      border-color: color-mix(in srgb, var(--cyan) 60%, transparent);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--cyan) 35%, transparent);
     }
 
-    /* touch ergonomics: no double-tap zoom, no long-press callout / grey flash */
+    /* dodir: bez zumiranja dvostrukim dodirom, bez izbornika na dugi pritisak */
     .cell, .t-cell, .m-cell, .sky-cell {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
     }
 
-    /* ---------- Controls / buttons ---------- */
-    .controls {
-      display: flex;
-      gap: 1rem;
-    }
-
+    /* ---------- Gumbi ---------- */
     button {
-      padding: 0.65rem 1.6rem;
-      border-radius: 2rem;
       border: none;
+      font: inherit;
       font-size: 0.9rem;
       font-weight: 600;
       letter-spacing: 0.06em;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
     }
 
     button:active { transform: scale(0.96); }
 
     .btn-restart {
-      background: linear-gradient(135deg, #e94560, #c62a47);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(233,69,96,0.4);
+      padding: 0.8rem 2.2rem;
+      border-radius: 2rem;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-size: 1rem;
+      box-shadow: 0 4px 15px color-mix(in srgb, var(--accent) 40%, transparent);
     }
 
-    .btn-restart:hover {
-      box-shadow: 0 6px 20px rgba(233,69,96,0.6);
-      transform: translateY(-1px);
+    /* ---------- Donja traka (plutajuća, poluprozirna) ---------- */
+    .tabbar {
+      position: fixed;
+      left: 0; right: 0;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      margin: 0 auto;
+      width: min(calc(100% - 32px), 440px);
+      height: 64px;
+      padding: 5px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2px;
+      border-radius: 32px;
+      background: var(--nav-glass);
+      border: 1px solid var(--glass-line);
+      -webkit-backdrop-filter: blur(24px) saturate(170%);
+      backdrop-filter: blur(24px) saturate(170%);
+      box-shadow: 0 10px 30px var(--nav-shadow);
+      z-index: 20;
     }
 
-    .btn-reset {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.2);
+    .tabbar button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-width: 0;
+      padding: 0 2px;
+      border-radius: 27px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+    .tabbar svg { display: block; }
+    .tabbar button.active { background: var(--glass-on); color: var(--text); font-weight: 700; }
+    .tabbar button.active svg { color: var(--accent); }
+
+    /* ---------- Prozorčići: postavke i upute ---------- */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--scrim);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 90;
+    }
+    .backdrop.open { opacity: 1; pointer-events: all; }
+
+    .sheet {
+      position: fixed;
+      z-index: 91;
+      width: min(calc(100% - 32px), 360px);
+      max-height: calc(100% - var(--hud-h) - 24px);
+      overflow-y: auto;
+      background: var(--surf);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 16px 44px rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px) scale(0.98);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .sheet.open { opacity: 1; pointer-events: all; transform: none; }
+
+    #settings-sheet { top: var(--hud-h); left: max(16px, calc(50% - 260px + 16px)); transform-origin: top left; }
+    #info-sheet { top: 50%; left: 50%; transform: translate(-50%, calc(-50% - 8px)) scale(0.98); }
+    #info-sheet.open { transform: translate(-50%, -50%); }
+
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .sheet h2 { font-size: 19px; font-weight: 750; letter-spacing: 0; }
+    .sheet-close {
+      width: 32px; height: 32px; padding: 0;
+      border-radius: 50%;
+      background: var(--surf2);
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .btn-reset:hover {
-      background: rgba(255,255,255,0.18);
-      transform: translateY(-1px);
-    }
+    .set-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .set-row:last-child { margin-bottom: 0; }
+    .set-label { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+    .seg-hint { font-size: 12px; color: var(--muted); min-height: 1.3em; }
+    .set-row .seg { flex: none; }
+    #row-level { display: none; }
+    .level-seg { display: none; }
+    body[data-game="mines"] #row-level, body[data-game="sky"] #row-level { display: flex; }
+    body[data-game="mines"] #m-levels, body[data-game="sky"] #sky-levels { display: flex; }
+    body[data-game="mines"] #sky-levels, body[data-game="sky"] #m-levels { display: none; }
 
-    /* ---------- Overlays ---------- */
+    .rules { list-style: none; display: flex; flex-direction: column; gap: 12px; counter-reset: r; }
+    .rules li {
+      counter-increment: r;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .rules li::before {
+      content: counter(r);
+      flex: none;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--surf2);
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .info-hint { margin-top: 14px; font-size: 13px; line-height: 1.4; color: var(--muted); }
+    .info-ok { width: 100%; margin-top: 16px; height: 46px; border-radius: 14px; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 700; letter-spacing: 0; }
+
+    /* ---------- Rezultat ---------- */
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: var(--scrim);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -634,264 +716,186 @@
       z-index: 100;
     }
 
-    .overlay.visible {
-      opacity: 1;
-      pointer-events: all;
-    }
+    .overlay.visible { opacity: 1; pointer-events: all; }
 
     .result-card {
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 2rem;
-      padding: 2.5rem 3rem;
+      background: var(--surf);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 2rem 2rem 1.8rem;
+      max-width: 90vw;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
       transform: scale(0.85);
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .overlay.visible .result-card {
-      transform: scale(1);
-    }
+    .overlay.visible .result-card { transform: scale(1); }
 
-    .result-card .emoji {
-      font-size: 3.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .result-card h2 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .result-card p {
-      opacity: 0.7;
-      margin-bottom: 1.5rem;
-    }
+    .result-card .emoji { font-size: 2.6rem; margin-bottom: 0.4rem; }
+    .result-card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .result-card p { color: var(--muted); margin-bottom: 1.4rem; }
 
     .result-card .big-time {
-      font-size: 2.4rem;
+      font-size: 1.9rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
-      color: #53d8fb;
+      color: var(--cyan);
       margin-bottom: 0.3rem;
     }
 
     .result-card .record-badge {
       display: inline-block;
-      color: #f0a500;
+      color: var(--gold);
       font-weight: 700;
       letter-spacing: 0.08em;
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.1rem;
     }
 
-    .result-card button {
-      font-size: 1rem;
-      padding: 0.8rem 2.2rem;
-    }
-
-    /* stack back into one column on narrower screens */
-    @media (max-width: 900px) {
-      .game { flex-direction: column; align-items: center; }
-      .game-side { width: auto; max-width: 420px; }
-      .game-side .scoreboard { flex-direction: row; flex-wrap: wrap; justify-content: center; }
-      .game-side .score-card { width: auto; min-width: 90px; }
-      .game-side .controls { flex-direction: row; justify-content: center; }
-      .game-side .controls button { width: auto; }
-    }
-
-    /* ---------- Mobile ---------- */
-    @media (max-width: 560px) {
-      .topbar { padding: 0.8rem 0.5rem; gap: 0.7rem; padding-top: calc(0.8rem + env(safe-area-inset-top)); }
-      h1 { font-size: 1.7rem; }
-      .game-nav { flex-wrap: wrap; justify-content: center; gap: 0.35rem; padding: 0.3rem; }
-      .game-nav button { padding: 0.45rem 0.85rem; font-size: 0.78rem; letter-spacing: 0.03em; }
-      .container { padding: 1rem 0.5rem; }
-      .game { gap: 1.25rem; }
-      .t-board, .sky-board { padding: 0.9rem; gap: 5px; }
-      .m-board { padding: 0.7rem; }
-      .result-card { padding: 1.8rem 1.4rem; max-width: 90vw; }
-      .result-card .emoji { font-size: 2.6rem; }
-      .result-card h2 { font-size: 1.4rem; }
-      .result-card .big-time { font-size: 1.9rem; }
-    }
-
-    @media (max-width: 420px) {
-      h1 { font-size: 1.5rem; }
-      .board { gap: 8px; padding: 1rem; }
-      .t-marker { width: 20px; height: 20px; font-size: 0.95rem; font-weight: 300; }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
     }
   </style>
-</head>
-<body>
 
-<header class="topbar">
-  <h1 id="main-title">Igrice</h1>
+</head>
+<body data-game="ttt">
+
+<div class="safe-top"></div>
+
+<header class="hud">
+  <button class="round-btn" id="btn-settings" aria-label="Postavke" aria-haspopup="dialog" aria-expanded="false"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
+
+  <div class="stats">
+    <!-- Križić Kružić -->
+    <div class="stat-group" data-for="ttt">
+      <div class="stat x-stat" id="card-x" title="Igrač 1"><span class="sym">✕</span><span id="score-x">0</span></div>
+      <div class="stat draw-stat" id="card-draw" title="Remi"><span class="sym">=</span><span id="score-draw">0</span></div>
+      <div class="stat o-stat" id="card-o" title="Igrač 2"><span class="sym">○</span><span id="score-o">0</span></div>
+    </div>
+    <!-- Tango -->
+    <div class="stat-group" data-for="tango">
+      <div class="stat time-stat" title="Vrijeme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg><span id="t-time">00:00</span></div>
+      <div class="stat best-stat" title="Rekord"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"></path></svg><span id="t-best">—</span></div>
+    </div>
+    <!-- Minolovac -->
+    <div class="stat-group" data-for="mines">
+      <div class="stat mine-stat" title="Mine"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg><span id="m-mines">0</span></div>
+      <div class="stat time-stat" title="Vrijeme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg><span id="m-time">00:00</span></div>
+      <div class="stat best-stat" title="Rekord"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"></path></svg><span id="m-best">—</span></div>
+    </div>
+    <!-- Neboderi -->
+    <div class="stat-group" data-for="sky">
+      <div class="stat time-stat" title="Vrijeme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg><span id="sky-time">00:00</span></div>
+      <div class="stat best-stat" title="Rekord"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"></path></svg><span id="sky-best">—</span></div>
+    </div>
+  </div>
+
+  <button class="round-btn" id="btn-info" aria-label="Upute za igru" aria-haspopup="dialog" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M12 11v7M12 6.5v.01"></path></svg></button>
 </header>
 
-<main class="container">
+<main class="stage" id="stage">
   <!-- ===================== KRIŽIĆ KRUŽIĆ ===================== -->
   <section id="game-ttt" class="game">
-    <div class="game-side">
-      <div class="scoreboard">
-        <div class="score-card x-card" id="card-x">
-          <div class="label">Igrač 1</div>
-          <div class="symbol">✕</div>
-          <div class="value" id="score-x">0</div>
-        </div>
-        <div class="score-card draw-card" id="card-draw">
-          <div class="label">Remi</div>
-          <div class="symbol">—</div>
-          <div class="value" id="score-draw">0</div>
-        </div>
-        <div class="score-card o-card" id="card-o">
-          <div class="label">Igrač 2</div>
-          <div class="symbol">○</div>
-          <div class="value" id="score-o">0</div>
-        </div>
-      </div>
+    <div class="status-bar sr-only" id="status" aria-live="polite"></div>
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
     </div>
-
-    <div class="game-main">
-      <div class="status-bar" id="status"></div>
-      <div class="board" id="board">
-        <div class="cell" data-index="0"></div>
-        <div class="cell" data-index="1"></div>
-        <div class="cell" data-index="2"></div>
-        <div class="cell" data-index="3"></div>
-        <div class="cell" data-index="4"></div>
-        <div class="cell" data-index="5"></div>
-        <div class="cell" data-index="6"></div>
-        <div class="cell" data-index="7"></div>
-        <div class="cell" data-index="8"></div>
-      </div>
-    </div>
-
-    <div class="game-side">
-
-      <div class="controls">
-        <button class="btn-restart" id="btn-restart">Nova igra</button>
-        <button class="btn-reset"   id="btn-reset">Resetiraj bodove</button>
-      </div>
+    <div class="actions">
+      <button class="pill-btn" id="btn-reset">Resetiraj bodove</button>
+      <button class="fab" id="btn-restart" aria-label="Nova igra"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg></button>
     </div>
   </section>
 
   <!-- ===================== TANGO ===================== -->
   <section id="game-tango" class="game hidden">
-    <div class="game-side">
-      <div class="scoreboard">
-        <div class="score-card time-card">
-          <div class="label">Vrijeme</div>
-          <div class="symbol">⏱</div>
-          <div class="value mono" id="t-time">00:00</div>
-        </div>
-        <div class="score-card best-card">
-          <div class="label">Rekord</div>
-          <div class="symbol">★</div>
-          <div class="value mono" id="t-best">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="game-main">
-      <div class="status-bar" id="t-status"></div>
-      <div class="t-board" id="t-board"></div>
-    </div>
-
-    <div class="game-side">
-
-      <div class="controls">
-        <button class="btn-restart" id="t-new">Nova zagonetka</button>
-        <button class="btn-reset"   id="t-clear">Očisti</button>
-      </div>
+    <div class="status-bar sr-only" id="t-status" aria-live="polite"></div>
+    <div class="t-board" id="t-board"></div>
+    <div class="actions">
+      <button class="pill-btn" id="t-clear">Očisti</button>
+      <button class="fab" id="t-new" aria-label="Nova zagonetka"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg></button>
     </div>
   </section>
 
   <!-- ===================== MINOLOVAC ===================== -->
   <section id="game-mines" class="game hidden">
-    <div class="game-side">
-      <div class="scoreboard">
-        <div class="score-card mine-card">
-          <div class="label">Mine</div>
-          <div class="symbol">💣</div>
-          <div class="value mono" id="m-mines">0</div>
-        </div>
-        <div class="score-card time-card">
-          <div class="label">Vrijeme</div>
-          <div class="symbol">⏱</div>
-          <div class="value mono" id="m-time">00:00</div>
-        </div>
-        <div class="score-card best-card">
-          <div class="label">Rekord</div>
-          <div class="symbol">★</div>
-          <div class="value mono" id="m-best">—</div>
-        </div>
+    <div class="status-bar sr-only" id="m-status" aria-live="polite"></div>
+    <div class="m-board" id="m-board"></div>
+    <div class="actions">
+      <div class="seg" id="m-mode" role="group" aria-label="Način igre">
+        <button id="m-mode-reveal" class="active">Otkrij</button>
+        <button id="m-mode-flag">Zastavica</button>
       </div>
-    </div>
-
-    <div class="game-main">
-      <div class="status-bar" id="m-status"></div>
-      <div class="m-board" id="m-board"></div>
-      <button class="btn-reset" id="m-flag">Način: Otkrij</button>
-    </div>
-
-    <div class="game-side">
-      <div class="game-nav" id="m-levels">
-        <button data-level="easy" class="active">Lako</button>
-        <button data-level="medium">Srednje</button>
-        <button data-level="hard">Teško</button>
-      </div>
-
-      <div class="controls">
-        <button class="btn-restart" id="m-new">Nova igra</button>
-      </div>
+      <button class="fab" id="m-new" aria-label="Nova igra"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg></button>
     </div>
   </section>
 
   <!-- ===================== NEBODERI ===================== -->
   <section id="game-sky" class="game hidden">
-    <div class="game-side">
-      <div class="scoreboard">
-        <div class="score-card sky-card">
-          <div class="label">Vrijeme</div>
-          <div class="symbol">⏱</div>
-          <div class="value mono" id="sky-time">00:00</div>
-        </div>
-        <div class="score-card best-card">
-          <div class="label">Rekord</div>
-          <div class="symbol">★</div>
-          <div class="value mono" id="sky-best">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="game-main">
-      <div class="status-bar" id="sky-status"></div>
-      <div class="sky-board" id="sky-board"></div>
-    </div>
-
-    <div class="game-side">
-      <div class="game-nav" id="sky-levels">
-        <button data-mode="easy">Lagano</button>
-        <button data-mode="classic" class="active">Klasično</button>
-        <button data-mode="pro">Pro</button>
-      </div>
-
-      <div class="controls">
-        <button class="btn-restart" id="sky-new">Nova zagonetka</button>
-        <button class="btn-reset"   id="sky-clear">Očisti</button>
-      </div>
+    <div class="status-bar sr-only" id="sky-status" aria-live="polite"></div>
+    <div class="sky-board" id="sky-board"></div>
+    <div class="actions">
+      <button class="pill-btn" id="sky-clear">Očisti</button>
+      <button class="fab" id="sky-new" aria-label="Nova zagonetka"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg></button>
     </div>
   </section>
 </main>
 
-<nav class="tabbar">
-  <button data-game="ttt" class="active"><span class="tab-icon">✕</span>Križić Kružić</button>
-  <button data-game="tango"><span class="tab-icon">☀</span>Tango</button>
-  <button data-game="mines"><span class="tab-icon">💣</span>Minolovac</button>
-  <button data-game="sky"><span class="tab-icon">🏙️</span>Neboderi</button>
+<nav class="tabbar" aria-label="Igre">
+  <button data-game="ttt" class="active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>Križić Kružić</button>
+  <button data-game="tango"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>Tango</button>
+  <button data-game="mines"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10a5 5 0 1 0 0-10M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>Minolovac</button>
+  <button data-game="sky"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9h5v12M10 21V4h6v17M16 21v-8h4v8"></path></svg>Neboderi</button>
 </nav>
+
+<!-- Postavke i upute -->
+<div class="backdrop" id="backdrop"></div>
+
+<div class="sheet" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="sheet-head">
+    <h2 id="settings-title">Postavke</h2>
+    <button class="sheet-close" data-close aria-label="Zatvori"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  </div>
+  <div class="set-row" id="row-level">
+    <div class="set-label">Razina</div>
+    <div class="seg level-seg" id="m-levels">
+      <button data-level="easy" class="active" data-hint="8 × 8 polja, 10 mina">Lako</button>
+      <button data-level="medium" data-hint="12 × 12 polja, 30 mina">Srednje</button>
+      <button data-level="hard" data-hint="16 × 16 polja, 50 mina">Teško</button>
+    </div>
+    <div class="seg level-seg" id="sky-levels">
+      <button data-mode="easy" data-hint="Prikazani su svi tragovi">Lagano</button>
+      <button data-mode="classic" class="active" data-hint="Rješivo logikom, bez pogađanja">Klasično</button>
+      <button data-mode="pro" data-hint="Jedno rješenje, ali može tražiti pogađanje">Pro</button>
+    </div>
+    <div class="seg-hint" id="level-hint"></div>
+  </div>
+  <div class="set-row">
+    <div class="set-label">Tema</div>
+    <div class="seg" id="theme-seg">
+      <button data-theme-pref="auto">Auto</button>
+      <button data-theme-pref="dark">Tamna</button>
+      <button data-theme-pref="light">Svijetla</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="info-sheet" role="dialog" aria-modal="true" aria-labelledby="info-title">
+  <div class="sheet-head">
+    <h2 id="info-title"></h2>
+    <button class="sheet-close" data-close aria-label="Zatvori"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  </div>
+  <ol class="rules" id="info-rules"></ol>
+  <div class="info-hint" id="info-hint"></div>
+  <button class="info-ok" data-close>U redu</button>
+</div>
 
 <!-- Tic-tac-toe overlay -->
 <div class="overlay" id="overlay">
@@ -955,6 +959,8 @@ navButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const game = btn.dataset.game;
     activeGame = game;
+    document.body.dataset.game = game;
+    closeSheets();
     navButtons.forEach(b => b.classList.toggle('active', b === btn));
     Object.entries(sections).forEach(([k, el]) => el.classList.toggle('hidden', k !== game));
     tttOverlay[game === 'ttt' ? 'resume' : 'suspend']();
@@ -967,11 +973,24 @@ navButtons.forEach(btn => {
 /* ======================================================================
    TOUCH / RESPONSIVE HELPERS  (shared by all games)
    ====================================================================== */
-// Largest cell size (px) that lets a `cols`-wide board fit the viewport width.
-function boardFit(cols, maxCell, gap, pad, minCell) {
-  const avail = Math.min(window.innerWidth - 20, 600);
-  const s = Math.floor((avail - (cols - 1) * gap - 2 * pad) / cols);
-  return Math.max(minCell, Math.min(maxCell, s));
+// Prostor za ploču: prostor između gornjeg reda i donje trake, bez reda s gumbima.
+const ACTIONS_H = 48 + 14;
+function stageSize() {
+  const st = document.getElementById('stage');
+  return { w: Math.min(st.clientWidth - 24, 560), h: st.clientHeight - ACTIONS_H - 8 };
+}
+
+// Largest cell size (px) that lets a `cols` x `rows` board fit the free stage area,
+// so no game ever needs scrolling. `pad` is the board's padding + border per side.
+function boardFit(cols, maxCell, gap, pad, minCell, rows = cols) {
+  const { w, h } = stageSize();
+  const sw = Math.floor((w - (cols - 1) * gap - 2 * pad) / cols);
+  const sh = Math.floor((h - (rows - 1) * gap - 2 * pad) / rows);
+  return Math.max(minCell, Math.min(maxCell, sw, sh));
+}
+
+function fitTicTacToe() {
+  document.documentElement.style.setProperty('--ttt-cell', boardFit(3, 130, 10, 16, 56) + 'px');
 }
 
 // Long-press = the "right-click" secondary action on touch devices. If the
@@ -1146,6 +1165,8 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 
 setStatus();
 setActiveCard();
+fitTicTacToe();
+window.addEventListener('resize', fitTicTacToe);
 
 /* ======================================================================
    TANGO
@@ -1354,7 +1375,7 @@ const Tango = (() => {
 
   // Scale the 6x6 board (and cell font) so it always fits the viewport.
   function sizeTangoBoard() {
-    const s = boardFit(N, 68, 7, 19, 32);
+    const s = boardFit(N, 68, 6, 11, 32);
     boardEl.style.gridTemplateColumns = `repeat(${N}, ${s}px)`;
     boardEl.style.gridTemplateRows = `repeat(${N}, ${s}px)`;
     const fs = Math.max(1.1, s * 0.032).toFixed(2) + 'rem';
@@ -1609,7 +1630,8 @@ const Mines = (() => {
   const timeEl    = document.getElementById('m-time');
   const bestEl    = document.getElementById('m-best');
   const statusEl  = document.getElementById('m-status');
-  const flagBtn   = document.getElementById('m-flag');
+  const revealBtn = document.getElementById('m-mode-reveal');
+  const flagModeBtn = document.getElementById('m-mode-flag');
   const overlayEl = document.getElementById('m-overlay');
   const resEmoji  = document.getElementById('m-result-emoji');
   const resTitle  = document.getElementById('m-result-title');
@@ -1680,7 +1702,7 @@ const Mines = (() => {
   /* ---------- Board setup ---------- */
   function buildBoard() {
     boardEl.innerHTML = '';
-    boardEl.style.setProperty('--m-size', boardFit(cols, LEVELS[level].size, 4, 16, 12) + 'px');
+    boardEl.style.setProperty('--m-size', boardFit(cols, LEVELS[level].size, 2, 7, 12, rows) + 'px');
     boardEl.style.gridTemplateColumns = `repeat(${cols}, var(--m-size))`;
     cellEls = [];
     for (let i = 0; i < rows * cols; i++) {
@@ -1946,9 +1968,8 @@ const Mines = (() => {
 
   function setFlagMode(on) {
     flagMode = on;
-    flagBtn.textContent = 'Način: ' + (on ? 'Zastavica 🚩' : 'Otkrij');
-    flagBtn.classList.toggle('btn-restart', on);
-    flagBtn.classList.toggle('btn-reset', !on);
+    revealBtn.classList.toggle('active', !on);
+    flagModeBtn.classList.toggle('active', on);
   }
 
   /* ---------- Lifecycle ---------- */
@@ -1981,12 +2002,13 @@ const Mines = (() => {
 
   document.getElementById('m-new').addEventListener('click', newGame);
   document.getElementById('m-play-again').addEventListener('click', newGame);
-  flagBtn.addEventListener('click', () => setFlagMode(!flagMode));
+  revealBtn.addEventListener('click', () => setFlagMode(false));
+  flagModeBtn.addEventListener('click', () => setFlagMode(true));
 
   // keep the board fitted to the viewport on rotate / resize
   window.addEventListener('resize', () => {
     if (!cellEls.length || !cols) return;
-    boardEl.style.setProperty('--m-size', boardFit(cols, LEVELS[level].size, 4, 16, 12) + 'px');
+    boardEl.style.setProperty('--m-size', boardFit(cols, LEVELS[level].size, 2, 7, 12, rows) + 'px');
   });
 
   return { onEnter, onLeave };
@@ -2266,7 +2288,7 @@ const Sky = (() => {
 
   // Scale the (N+2)x(N+2) board (cells + clue numbers) to fit the viewport.
   function sizeSkyBoard() {
-    const s = boardFit(N + 2, 62, 5, 19, 28);
+    const s = boardFit(N + 2, 62, 5, 11, 28);
     boardEl.style.gridTemplateColumns = `repeat(${N + 2}, ${s}px)`;
     boardEl.style.gridTemplateRows = `repeat(${N + 2}, ${s}px)`;
     const cf = Math.max(1.0, s * 0.028).toFixed(2) + 'rem';
@@ -2452,12 +2474,145 @@ const Sky = (() => {
   return { onEnter, onLeave };
 })();
 
+
+/* ======================================================================
+   TEMA, POSTAVKE I UPUTE
+   ====================================================================== */
+const THEME_KEY = 'igrice-theme';
+const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+let themePref = 'auto';
+try { themePref = localStorage.getItem(THEME_KEY) || 'auto'; } catch (e) {}
+if (!['auto', 'dark', 'light'].includes(themePref)) themePref = 'auto';
+
+function applyTheme() {
+  const light = themePref === 'light' || (themePref === 'auto' && lightQuery.matches);
+  document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+  themeMeta.setAttribute('content', light ? '#f3f5fa' : '#0d1321');
+  document.querySelectorAll('#theme-seg button').forEach(b =>
+    b.classList.toggle('active', b.dataset.themePref === themePref));
+}
+document.querySelectorAll('#theme-seg button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    themePref = btn.dataset.themePref;
+    try { localStorage.setItem(THEME_KEY, themePref); } catch (e) {}
+    applyTheme();
+  });
+});
+lightQuery.addEventListener('change', applyTheme);
+applyTheme();
+
+const INFO = {
+  ttt: {
+    title: 'Križić Kružić',
+    rules: [
+      'Igrač 1 (✕) i Igrač 2 (○) naizmjence postavljaju svoj znak na prazno polje.',
+      'Pobjeđuje tko prvi složi tri svoja znaka u redu, stupcu ili dijagonali.',
+      'Ako su sva polja popunjena, a nitko nije pobijedio, igra je neriješena (remi).'
+    ],
+    hint: 'Gore je istaknut igrač koji je na redu. Bodovi se zbrajaju dok ih ne resetiraš.'
+  },
+  tango: {
+    title: 'Tango',
+    rules: [
+      'Popuni ploču suncima ☀ i mjesecima ☾: u svakom redu i stupcu mora biti po 3 sunca i 3 mjeseca.',
+      'Više od dva ista znaka ne smiju stajati jedan do drugoga u redu ni u stupcu.',
+      'Znak = između dva polja znači da su ista, a znak × da su različita.',
+      'Svaka zagonetka ima jedno rješenje i može se riješiti logikom.'
+    ],
+    hint: 'Dodir mijenja polje: prazno → sunce → mjesec → prazno. Dugi pritisak odmah postavlja mjesec. Zadana polja se ne mogu mijenjati.'
+  },
+  mines: {
+    title: 'Minolovac',
+    rules: [
+      'Otkrij sva polja na kojima nema mine.',
+      'Broj na polju kaže koliko mina ima u osam susjednih polja.',
+      'Pronađene mine označi zastavicom: prebaci način na Zastavica ili dugo pritisni polje.',
+      'Dodir na minu završava igru, a pobjeda je kad su otkrivena sva sigurna polja.'
+    ],
+    hint: 'Prvi dodir je uvijek siguran, a ploča se u pravilu može riješiti bez pogađanja. Brojač gore pokazuje koliko je mina još neoznačeno.'
+  },
+  sky: {
+    title: 'Neboderi',
+    rules: [
+      'U svaki red i stupac upiši visine nebodera od 1 do 5, svaku točno jednom.',
+      'Broj uz rub kaže koliko se nebodera vidi iz tog smjera.',
+      'Viši neboder zaklanja sve niže iza sebe.',
+      'Pogrešna polja i tragovi označe se crveno.'
+    ],
+    hint: 'Dodir povećava visinu (1 → 5 → prazno), a dugi pritisak je smanjuje.'
+  }
+};
+
+const backdrop      = document.getElementById('backdrop');
+const settingsSheet = document.getElementById('settings-sheet');
+const infoSheet     = document.getElementById('info-sheet');
+const btnSettings   = document.getElementById('btn-settings');
+const btnInfo       = document.getElementById('btn-info');
+const GAME_MODULES  = { tango: Tango, mines: Mines, sky: Sky };
+let openSheet = null, openTrigger = null;
+
+// Dok je prozorčić otvoren, mjerač vremena stoji.
+function closeSheets() {
+  if (!openSheet) return;
+  openSheet.classList.remove('open');
+  backdrop.classList.remove('open');
+  openTrigger.setAttribute('aria-expanded', 'false');
+  const trigger = openTrigger;
+  openSheet = null; openTrigger = null;
+  const mod = GAME_MODULES[activeGame];
+  if (mod) mod.onEnter();
+  else if (activeGame === 'ttt') tttOverlay.resume();
+  trigger.focus({ preventScroll: true });
+}
+
+function toggleSheet(sheet, trigger) {
+  if (openSheet === sheet) { closeSheets(); return; }
+  closeSheets();
+  const mod = GAME_MODULES[activeGame];
+  if (mod) mod.onLeave();
+  openSheet = sheet; openTrigger = trigger;
+  sheet.classList.add('open');
+  backdrop.classList.add('open');
+  trigger.setAttribute('aria-expanded', 'true');
+  sheet.querySelector('button.active, .sheet-close').focus({ preventScroll: true });
+}
+
+function updateLevelHint() {
+  const sel = activeGame === 'mines' ? '#m-levels' : activeGame === 'sky' ? '#sky-levels' : null;
+  const b = sel && document.querySelector(sel + ' button.active');
+  document.getElementById('level-hint').textContent = b ? b.dataset.hint : '';
+}
+
+btnSettings.addEventListener('click', () => { updateLevelHint(); toggleSheet(settingsSheet, btnSettings); });
+btnInfo.addEventListener('click', () => {
+  const info = INFO[activeGame];
+  document.getElementById('info-title').textContent = info.title;
+  document.getElementById('info-hint').textContent = info.hint;
+  const list = document.getElementById('info-rules');
+  list.innerHTML = '';
+  for (const r of info.rules) {
+    const li = document.createElement('li');
+    li.textContent = r;
+    list.appendChild(li);
+  }
+  toggleSheet(infoSheet, btnInfo);
+});
+backdrop.addEventListener('click', closeSheets);
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+// nova razina odmah pokreće novu igru – prozorčić se zatvori nakon kratke potvrde odabira
+document.querySelectorAll('#m-levels button, #sky-levels button').forEach(btn => {
+  btn.addEventListener('click', () => { updateLevelHint(); setTimeout(closeSheets, 180); });
+});
+
 /* ======================================================================
    BACKGROUND PAUSE  (screen locked / app switched → timers stop)
    ====================================================================== */
 document.addEventListener('visibilitychange', () => {
   const game = { tango: Tango, mines: Mines, sky: Sky }[activeGame];
-  if (game) game[document.hidden ? 'onLeave' : 'onEnter']();
+  if (game && (document.hidden || !openSheet)) game[document.hidden ? 'onLeave' : 'onEnter']();
 });
 </script>
 
