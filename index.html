@@ -50,24 +50,20 @@
       --bg: #0f3460;
       --bg-2: #0f3460;
       --bg-3: #0f3460;
-      --surf: #182036;
-      --surf2: #222c47;
-      --line: #2e3a5c;
+      /* ista pravila u obje teme: pozadina < ploha < istaknuto < rub;
+         polja na ploči malo tamnija od pozadine, skriveno polje u boji ruba */
+      --surf: #20426b;               /* ploha: gumbi, trake, ploča, prozorčići */
+      --surf2: #2b5283;              /* istaknuto: aktivno, zadano */
+      --line: #315076;               /* rub */
       --text: #f1f4fa;
-      --muted: #a3aecb;
+      --muted: #a8b8d4;
       --accent: #e94560;
-      --on-accent: #1a1a2e;
+      --on-accent: #ffffff;
       --cyan: #53d8fb;
       --gold: #f0a500;
-      --hidden: #2a3552;
-      --open: #0f1628;
-      --good: #5be49b;
-      --glass: rgba(255,255,255,0.07);
-      --glass-line: rgba(255,255,255,0.14);
-      --glass-on: rgba(255,255,255,0.20);
-      --nav-glass: rgba(22,30,52,0.72);
-      --nav-shadow: rgba(0,0,0,0.45);
-      --tab-on: rgba(255,255,255,0.12);
+      --hidden: #315076;
+      --open: #0b2a4f;               /* polje na ploči */
+      --glass: rgba(32,66,107,0.8);  /* ploha, prozirna */
       --scrim: rgba(5,8,16,0.62);
       /* brojke u Minolovcu: nikad boje X-a (koralj) ni O-a (cijan) */
       --n1: #8ea6ff; --n2: #5be49b; --n3: #ff9f6b; --n4: #b892ff;
@@ -90,13 +86,7 @@
       --gold: #b07400;
       --hidden: #d5dbe8;
       --open: #f3f5fa;
-      --good: #1e8a5c;
-      --glass: rgba(255,255,255,0.70);
-      --glass-line: rgba(20,26,43,0.10);
-      --glass-on: rgba(20,26,43,0.10);
-      --nav-glass: rgba(255,255,255,0.72);
-      --nav-shadow: rgba(20,26,43,0.16);
-      --tab-on: #e6eaf3;
+      --glass: rgba(255,255,255,0.8);
       --scrim: rgba(20,26,43,0.38);
       --n1: #3d5fd6; --n2: #1e8a5c; --n3: #c4561a; --n4: #6b3fc9;
       --n5: #8a6d00; --n6: #4d5b7c; --n7: #141a2b; --n8: #56607a;
@@ -162,7 +152,7 @@
       padding: 0;
       border-radius: 50%;
       background: var(--glass);
-      border: 1px solid var(--glass-line);
+      border: 1px solid var(--line);
       -webkit-backdrop-filter: blur(20px) saturate(160%);
       backdrop-filter: blur(20px) saturate(160%);
       color: var(--text);
@@ -175,7 +165,7 @@
     }
     .round-btn svg { display: block; }
     #btn-info { color: var(--cyan); }
-    .round-btn[aria-expanded="true"] { background: var(--glass-on); }
+    .round-btn[aria-expanded="true"] { background: var(--surf2); }
 
     .stats {
       flex: 1;
@@ -183,7 +173,7 @@
       height: 44px;
       border-radius: 22px;
       background: var(--glass);
-      border: 1px solid var(--glass-line);
+      border: 1px solid var(--line);
       -webkit-backdrop-filter: blur(20px) saturate(160%);
       backdrop-filter: blur(20px) saturate(160%);
       display: flex;
@@ -220,7 +210,7 @@
     .stat.best-stat { color: var(--gold); }
     .stat.mine-stat svg { color: var(--cyan); }
     /* igrač na potezu */
-    .stat.active { background: var(--glass-on); border-color: var(--text); }
+    .stat.active { background: var(--surf2); border-color: var(--text); }
     .stat.x-stat.active { border-color: var(--accent); }
     .stat.o-stat.active { border-color: var(--cyan); }
 
@@ -260,7 +250,7 @@
       padding: 0 1rem;
       border-radius: 24px;
       background: var(--glass);
-      border: 1px solid var(--glass-line);
+      border: 1px solid var(--line);
       color: var(--text);
       font-size: 15px;
       font-weight: 600;
@@ -302,7 +292,7 @@
       letter-spacing: 0;
     }
     .seg button.active { background: var(--surf); color: var(--text); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
-    .actions .seg { border-radius: 24px; background: var(--glass); border-color: var(--glass-line); }
+    .actions .seg { border-radius: 24px; background: var(--glass); border-color: var(--line); }
     .actions .seg button { border-radius: 21px; font-size: 15px; }
     .actions .seg button.active { background: var(--surf2); box-shadow: none; }
 
@@ -603,8 +593,8 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 2px;
       border-radius: 35px;
-      background: var(--nav-glass);
-      border: 1px solid var(--glass-line);
+      background: var(--glass);
+      border: 1px solid var(--line);
       -webkit-backdrop-filter: blur(24px) saturate(170%);
       backdrop-filter: blur(24px) saturate(170%);
       box-shadow: none;
@@ -628,7 +618,7 @@
       white-space: nowrap;
     }
     .tabbar svg { display: block; }
-    .tabbar button.active { background: var(--tab-on); color: var(--text); font-weight: 700; }
+    .tabbar button.active { background: var(--surf2); color: var(--text); font-weight: 700; }
     .tabbar button.active svg { color: var(--accent); }
 
     /* ---------- Vodoravno (mobitel položen): traka lijevo, gumbi desno od ploče ---------- */
@@ -1275,7 +1265,7 @@ cells.forEach(cell => {
       gameOver = true;
       if (result.winner === 'draw') {
         scores.D++;
-        statusEl.innerHTML = `<span style="color:#f0a500;font-weight:700">Remi!</span>`;
+        statusEl.innerHTML = `<span style="color:var(--gold);font-weight:700">Remi!</span>`;
       } else {
         highlightWinners(result.line);
         const name = result.winner === 'X' ? 'Igrač 1 (X)' : 'Igrač 2 (O)';
@@ -1661,7 +1651,7 @@ const Tango = (() => {
     for (const m of markers) m.el.classList.toggle('bad', badMarkers.has(m));
     const filled = values.filter(v => v).length;
     statusEl.innerHTML = bad.size
-      ? `<span style="color:#e94560;font-weight:700">Ima grešaka…</span>`
+      ? `<span style="color:var(--accent);font-weight:700">Ima grešaka…</span>`
       : `Popunjeno ${filled} / ${N * N}`;
   }
 
@@ -1687,7 +1677,7 @@ const Tango = (() => {
     pauseTimer();
     const ms = elapsed();
     cellEls.forEach(el => el.classList.add('solved'));
-    statusEl.innerHTML = `<span style="color:#53d8fb;font-weight:700">Riješeno u ${fmt(ms)}!</span>`;
+    statusEl.innerHTML = `<span style="color:var(--cyan);font-weight:700">Riješeno u ${fmt(ms)}!</span>`;
 
     finalTime.textContent = fmt(ms);
     let isRecord = false;
@@ -2041,8 +2031,8 @@ const Mines = (() => {
       firstClick = false;
       startTimer();
       statusEl.innerHTML = mayNeedGuess
-        ? `<span style="color:#f0a500">Napomena: ova ploča možda traži pogađanje.</span>`
-        : `<span style="color:#43d17a">Rješivo logikom — bez pogađanja.</span>`;
+        ? `<span style="color:var(--gold)">Napomena: ova ploča možda traži pogađanje.</span>`
+        : `<span style="color:var(--cyan)">Rješivo logikom — bez pogađanja.</span>`;
     }
 
     if (cell.mine) { lose(i); return; }
@@ -2082,7 +2072,7 @@ const Mines = (() => {
       if (grid[i].flagged && !grid[i].mine) { renderCell(i); cellEls[i].classList.add('wrong'); }
     }
     cellEls[hit].classList.add('exploded');
-    statusEl.innerHTML = `<span style="color:#e94560;font-weight:700">Bum! Nagazio si minu.</span>`;
+    statusEl.innerHTML = `<span style="color:var(--accent);font-weight:700">Bum! Nagazio si minu.</span>`;
     resEmoji.innerHTML = '<span class="res-boom">' + XO_SVG.O + '</span>';
     resTitle.textContent = 'Kraj igre';
     finalTime.textContent = fmt(elapsed());
@@ -2100,7 +2090,7 @@ const Mines = (() => {
     for (let i = 0; i < rows * cols; i++)
       if (grid[i].mine && !grid[i].flagged) { grid[i].flagged = true; renderCell(i); }
     flags = mineCount; renderMines();
-    statusEl.innerHTML = `<span style="color:#53d8fb;font-weight:700">Očišćeno u ${fmt(ms)}!</span>`;
+    statusEl.innerHTML = `<span style="color:var(--cyan);font-weight:700">Očišćeno u ${fmt(ms)}!</span>`;
 
     let isRecord = false;
     const prev = best[level];
@@ -2524,7 +2514,7 @@ const Sky = (() => {
     } else {
       const filled = values.filter(v => v).length;
       statusEl.innerHTML = (bad.size || clueBad)
-        ? `<span style="color:#e94560;font-weight:700">Ima grešaka…</span>`
+        ? `<span style="color:var(--accent);font-weight:700">Ima grešaka…</span>`
         : `Popunjeno ${filled} / ${N * N}`;
     }
   }
@@ -2552,7 +2542,7 @@ const Sky = (() => {
     pauseTimer();
     const ms = elapsed();
     cellEls.forEach(el => el.classList.add('solved'));
-    statusEl.innerHTML = `<span style="color:#53d8fb;font-weight:700">Riješeno u ${fmt(ms)}!</span>`;
+    statusEl.innerHTML = `<span style="color:var(--cyan);font-weight:700">Riješeno u ${fmt(ms)}!</span>`;
 
     finalTime.textContent = fmt(ms);
     let isRecord = false;
