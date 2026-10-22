@@ -107,6 +107,8 @@
     body {
       position: fixed;
       inset: 0;
+      /* u iOS PWA-u prikaz zna biti kraći od ekrana; JS tada postavi punu visinu */
+      height: var(--app-h, auto);
       overflow: hidden;
       overscroll-behavior: none;
       background: var(--bg);
@@ -127,7 +129,7 @@
 
     /* traka iza statusne trake iPhonea (PWA) – u svijetloj temi tamna da se sat vidi */
     .safe-top {
-      position: fixed;
+      position: absolute;
       top: 0; left: 0; right: 0;
       height: env(safe-area-inset-top, 0px);
       background: var(--bg);
@@ -136,7 +138,7 @@
 
     /* ---------- Gornji red: postavke · brojke · upute ---------- */
     .hud {
-      position: fixed;
+      position: absolute;
       top: env(safe-area-inset-top, 0px);
       left: 0; right: 0;
       margin: 0 auto;
@@ -220,7 +222,7 @@
 
     /* ---------- Prostor za igru (između gornjeg reda i donje trake) ---------- */
     .stage {
-      position: fixed;
+      position: absolute;
       left: 0; right: 0;
       top: var(--hud-h);
       bottom: var(--nav-h);
@@ -583,7 +585,7 @@
 
     /* ---------- Donja traka (plutajuća, poluprozirna) ---------- */
     .tabbar {
-      position: fixed;
+      position: absolute;
       left: 0; right: 0;
       bottom: 0;
       margin: 0 auto;
@@ -596,7 +598,7 @@
       border-radius: 26px 26px 0 0;
       background: var(--nav-glass);
       border: 1px solid var(--glass-line);
-      border-bottom: none;
+      border-width: 1px 0 0;
       -webkit-backdrop-filter: blur(24px) saturate(170%);
       backdrop-filter: blur(24px) saturate(170%);
       box-shadow: 0 -6px 24px var(--nav-shadow);
@@ -625,7 +627,7 @@
 
     /* ---------- Prozorčići: postavke i upute ---------- */
     .backdrop {
-      position: fixed;
+      position: absolute;
       inset: 0;
       background: var(--scrim);
       opacity: 0;
@@ -636,7 +638,7 @@
     .backdrop.open { opacity: 1; pointer-events: all; }
 
     .sheet {
-      position: fixed;
+      position: absolute;
       z-index: 91;
       width: min(calc(100% - 32px), 360px);
       max-height: calc(100% - var(--hud-h) - 24px);
@@ -703,7 +705,7 @@
 
     /* ---------- Rezultat ---------- */
     .overlay {
-      position: fixed;
+      position: absolute;
       inset: 0;
       background: var(--scrim);
       display: flex;
@@ -988,6 +990,19 @@ function boardFit(cols, maxCell, gap, pad, minCell, rows = cols) {
   return Math.max(minCell, Math.min(maxCell, sw, sh));
 }
 
+// iOS PWA (standalone): prikaz zna biti kraći od ekrana pa traka ostane iznad dna.
+// Tada aplikaciji dajemo punu visinu ekrana.
+function fitAppHeight() {
+  const standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  const full = window.screen.height;
+  const root = document.documentElement.style;
+  if (standalone && window.innerHeight > window.innerWidth && full > window.innerHeight && full - window.innerHeight < 120) {
+    root.setProperty('--app-h', full + 'px');
+  } else {
+    root.removeProperty('--app-h');
+  }
+}
+
 function fitTicTacToe() {
   document.documentElement.style.setProperty('--ttt-cell', boardFit(3, 130, 10, 16, 56) + 'px');
 }
@@ -1164,8 +1179,9 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 
 setStatus();
 setActiveCard();
-fitTicTacToe();
-window.addEventListener('resize', fitTicTacToe);
+function fitLayout() { fitAppHeight(); fitTicTacToe(); }
+fitLayout();
+window.addEventListener('resize', fitLayout);
 
 /* ======================================================================
    TANGO
