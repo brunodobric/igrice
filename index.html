@@ -106,6 +106,10 @@
       background: var(--bg);
     }
 
+    /* iOS PWA: prikaz je kraći od ekrana pa ga produljimo do dna ekrana */
+    html.tall-fix { height: var(--app-h); }
+    html.tall-fix body { position: relative; inset: auto; height: var(--app-h); }
+
     body {
       position: fixed;
       inset: 0;
@@ -601,7 +605,7 @@
       border: 1px solid var(--glass-line);
       -webkit-backdrop-filter: blur(24px) saturate(170%);
       backdrop-filter: blur(24px) saturate(170%);
-      box-shadow: 0 8px 24px var(--nav-shadow);
+      box-shadow: none;
       z-index: 20;
     }
 
@@ -990,14 +994,19 @@ function boardFit(cols, maxCell, gap, pad, minCell, rows = cols) {
   return Math.max(minCell, Math.min(maxCell, sw, sh));
 }
 
-// iOS PWA: kad je prikaz kraći od ekrana, prostor ispod njega već služi kao
-// donja sigurna zona (home indicator), pa traka ne treba dodatni razmak.
+// iOS PWA: kad je prikaz kraći od ekrana, stranicu produljimo do dna ekrana
+// kako bi traka sjela iznad home indicatora kao u nativnim aplikacijama.
 function fitViewportGap() {
   const standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
   const gap = window.screen.height - window.innerHeight;
-  const root = document.documentElement.style;
-  if (standalone && window.innerHeight > window.innerWidth && gap > 20 && gap < 120) root.setProperty('--safe-b', '0px');
-  else root.removeProperty('--safe-b');
+  const html = document.documentElement;
+  if (standalone && window.innerHeight > window.innerWidth && gap > 20 && gap < 120) {
+    html.style.setProperty('--app-h', window.screen.height + 'px');
+    html.classList.add('tall-fix');
+  } else {
+    html.style.removeProperty('--app-h');
+    html.classList.remove('tall-fix');
+  }
 }
 
 function fitTicTacToe() {
