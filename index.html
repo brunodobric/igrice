@@ -21,8 +21,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Igrice">
   <meta name="application-name" content="Igrice">
-  <meta name="theme-color" content="#0d1321">
-  <meta name="msapplication-TileColor" content="#0d1321">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="msapplication-TileColor" content="#1a1a2e">
   <meta name="msapplication-TileImage" content="icon-192.png">
 
   <!-- tema se postavlja prije prikaza da nema treptanja -->
@@ -46,17 +46,18 @@
     /* ---------- Teme ---------- */
     :root {
       color-scheme: dark;
-      --bg: #0d1321;
+      --bg: #1a1a2e;
+      --bg-2: #16213e;
+      --bg-3: #0f3460;
       --surf: #182036;
       --surf2: #222c47;
       --line: #2e3a5c;
       --text: #f1f4fa;
       --muted: #a3aecb;
-      --accent: #ff5d73;
-      --on-accent: #0d1321;
-      --cyan: #4cc9f0;
-      --gold: #ffc145;
-      --sun: #ffc145;
+      --accent: #e94560;
+      --on-accent: #1a1a2e;
+      --cyan: #53d8fb;
+      --gold: #f0a500;
       --hidden: #2a3552;
       --open: #0f1628;
       --good: #5be49b;
@@ -65,25 +66,27 @@
       --glass-on: rgba(255,255,255,0.20);
       --nav-glass: rgba(22,30,52,0.72);
       --nav-shadow: rgba(0,0,0,0.45);
-      --tab-on: #0d1321;
+      --tab-on: rgba(255,255,255,0.12);
       --scrim: rgba(5,8,16,0.62);
-      --n1: #4cc9f0; --n2: #5be49b; --n3: #ff5d73; --n4: #b892ff;
-      --n5: #ffc145; --n6: #3dd6c6; --n7: #f1f4fa; --n8: #a3aecb;
+      /* brojke u Minolovcu: nikad boje X-a (koralj) ni O-a (cijan) */
+      --n1: #8ea6ff; --n2: #5be49b; --n3: #ff9f6b; --n4: #b892ff;
+      --n5: #ffd166; --n6: #c7d0e8; --n7: #f1f4fa; --n8: #a3aecb;
     }
 
     :root[data-theme="light"] {
       color-scheme: light;
-      --bg: #f3f5fa;
+      --bg: #f7f8fc;
+      --bg-2: #edf1f9;
+      --bg-3: #e1e9f6;
       --surf: #ffffff;
       --surf2: #e6eaf3;
       --line: #d5dbe8;
       --text: #141a2b;
       --muted: #56607a;
-      --accent: #c92e4a;
+      --accent: #d2354f;
       --on-accent: #ffffff;
-      --cyan: #0878a0;
-      --gold: #a66c00;
-      --sun: #e9a21b;
+      --cyan: #0a86ad;
+      --gold: #b07400;
       --hidden: #d5dbe8;
       --open: #f3f5fa;
       --good: #1e8a5c;
@@ -94,8 +97,8 @@
       --nav-shadow: rgba(20,26,43,0.16);
       --tab-on: #e6eaf3;
       --scrim: rgba(20,26,43,0.38);
-      --n1: #0878a0; --n2: #1e8a5c; --n3: #c92e4a; --n4: #6b3fc9;
-      --n5: #a66c00; --n6: #0e7c86; --n7: #141a2b; --n8: #56607a;
+      --n1: #3d5fd6; --n2: #1e8a5c; --n3: #c4561a; --n4: #6b3fc9;
+      --n5: #8a6d00; --n6: #4d5b7c; --n7: #141a2b; --n8: #56607a;
     }
 
     /* Ispuni cijeli ekran (uklj. iPhone safe area); ništa se ne scrolla */
@@ -111,9 +114,9 @@
       inset: 0;
       overflow: hidden;
       overscroll-behavior: none;
-      background: var(--bg);
+      background: linear-gradient(165deg, var(--bg) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
       color: var(--text);
-      font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
+      font-family: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased;
       --hud-h: calc(env(safe-area-inset-top, 0px) + 78px);
       --nav-bottom: calc(var(--safe-b, env(safe-area-inset-bottom, 0px)) + 8px);
@@ -213,7 +216,7 @@
     .stat.draw-stat .sym { color: var(--gold); }
     .stat.time-stat svg { color: var(--cyan); }
     .stat.best-stat { color: var(--gold); }
-    .stat.mine-stat svg { color: var(--accent); }
+    .stat.mine-stat svg { color: var(--cyan); }
     /* igrač na potezu */
     .stat.active { background: var(--glass-on); border-color: var(--text); }
     .stat.x-stat.active { border-color: var(--accent); }
@@ -405,7 +408,7 @@
 
     .t-cell.given { cursor: default; background: var(--surf2); }
 
-    .t-cell.sun  { color: var(--sun); }
+    .t-cell.sun  { color: var(--accent); }
     .t-cell.moon { color: var(--cyan); }
 
     .t-cell.error {
@@ -475,9 +478,10 @@
 
     .m-cell.flag { color: var(--accent); }
 
-    .m-cell.mine.revealed { background: color-mix(in srgb, var(--accent) 18%, var(--open)); }
+    .m-cell.mine.revealed { background: var(--open); color: var(--cyan); }
     .m-cell.exploded {
-      background: color-mix(in srgb, var(--accent) 60%, var(--open)) !important;
+      background: var(--accent) !important;
+      color: var(--on-accent) !important;
       box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
     }
     .m-cell.wrong { background: color-mix(in srgb, var(--accent) 14%, var(--hidden)); }
@@ -781,7 +785,67 @@
 
     .overlay.visible .result-card { transform: scale(1); }
 
-    .result-card .emoji { font-size: 2.6rem; margin-bottom: 0.4rem; }
+    .result-card .emoji { font-size: 2.6rem; margin-bottom: 0.4rem; display: flex; justify-content: center; }
+
+    /* X i O: isti potez kao logo (12 % polja), zaobljeni krajevi */
+    .glyph {
+      display: block;
+      width: 58%;
+      height: 58%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.9;
+      stroke-linecap: round;
+      pointer-events: none;
+    }
+    .m-cell .glyph { width: 72%; height: 72%; stroke-width: 3.4; }
+    .stat .sym .glyph, .seg .glyph { width: 15px; height: 15px; stroke-width: 3.6; }
+    .seg .glyph { display: inline-block; vertical-align: -2px; margin-right: 5px; color: var(--accent); }
+    .res-mark { width: 64px; height: 64px; display: block; }
+    .mk-o { stroke: var(--cyan); }
+    .mk-x { stroke: var(--accent); }
+    .res-x { color: var(--accent); }
+    .res-o { color: var(--cyan); }
+    .res-x .glyph, .res-o .glyph { width: 64px; height: 64px; }
+    .res-draw { color: var(--gold); font-size: 3rem; font-weight: 900; line-height: 64px; }
+    .res-boom {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--accent); color: var(--on-accent);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .res-boom .glyph { width: 70%; height: 70%; stroke-width: 3.2; }
+
+    /* ---------- Uvodna animacija (2 s) ---------- */
+    .splash {
+      position: fixed; inset: 0; z-index: 200;
+      background: linear-gradient(165deg, var(--bg) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+      display: flex; align-items: center; justify-content: center;
+      animation: sp-out 0.25s 1.75s ease-in forwards;
+    }
+    .splash.skip { animation: sp-out 0.2s ease-in forwards; }
+    .sp-group { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .sp-logo { position: relative; width: 150px; height: 150px; animation: sp-rise 0.45s 0.95s cubic-bezier(.2,.8,.2,1) both; }
+    .sp-hit { position: absolute; inset: 0; animation: sp-hit 0.3s 0.5s ease-out both; }
+    .sp-hit svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .sp-x { color: var(--accent); animation: sp-x 0.55s cubic-bezier(.3,1.35,.5,1) both, sp-hide 0.1s 0.55s forwards; }
+    .sp-o { color: var(--cyan); animation: sp-o 0.55s cubic-bezier(.3,1.35,.5,1) both, sp-hide 0.1s 0.55s forwards; }
+    .sp-woven { opacity: 0; animation: sp-show 0.1s 0.55s forwards; }
+    .sp-burst { color: var(--cyan); opacity: 0; transform-origin: 50% 50%; animation: sp-burst 0.45s 0.5s ease-out forwards; }
+    .sp-name {
+      font-size: 36px; font-weight: 900; letter-spacing: -0.01em; color: var(--text);
+      animation: sp-up 0.4s 1s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .sp-name .a { color: var(--accent); }
+    .sp-name .b { color: var(--cyan); }
+    @keyframes sp-x { from { transform: translateX(-60vw) rotate(-200deg); opacity: 0; } 30% { opacity: 1; } to { transform: none; opacity: 1; } }
+    @keyframes sp-o { from { transform: translateX(60vw) scale(0.55); opacity: 0; } 30% { opacity: 1; } to { transform: none; opacity: 1; } }
+    @keyframes sp-hide { to { opacity: 0; } }
+    @keyframes sp-show { to { opacity: 1; } }
+    @keyframes sp-hit { 0% { transform: scale(1); } 35% { transform: scale(1.14, 0.9); } 70% { transform: scale(0.96, 1.04); } 100% { transform: scale(1); } }
+    @keyframes sp-burst { from { opacity: 0.8; transform: scale(0.7); } to { opacity: 0; transform: scale(1.9); } }
+    @keyframes sp-rise { from { transform: translateY(36px); } to { transform: none; } }
+    @keyframes sp-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes sp-out { to { opacity: 0; visibility: hidden; } }
     .result-card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
     .result-card p { color: var(--muted); margin-bottom: 1.4rem; }
 
@@ -803,11 +867,16 @@
 
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; transition: none !important; }
+      .sp-x, .sp-o, .sp-burst { display: none; }
+      .sp-woven { opacity: 1; }
     }
   </style>
 
 </head>
 <body data-game="ttt">
+
+<!-- Uvodna animacija: X i O se sudare i isprepletu u logo, ispod se pojavi ime -->
+<div class="splash" id="splash" aria-hidden="true"><div class="sp-group"><div class="sp-logo"><div class="sp-hit"><svg class="sp-burst" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="3"></circle></svg><svg class="sp-x" viewBox="0 0 100 100"><path d="M22 22L78 78M78 22L22 78" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round"></path></svg><svg class="sp-o" viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" fill="none" stroke="currentColor" stroke-width="12"></circle></svg><svg class="sp-woven" viewBox="0 0 100 100"><defs><clipPath id="sp-ca"><rect x="22" y="22" width="25" height="25"></rect><rect x="53" y="53" width="25" height="25"></rect></clipPath><clipPath id="sp-cb"><rect x="53" y="22" width="25" height="25"></rect><rect x="22" y="53" width="25" height="25"></rect></clipPath><mask id="sp-mo" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"></rect><path d="M22 22L78 78M78 22L22 78" stroke="#000" stroke-width="21" stroke-linecap="round" fill="none" clip-path="url(#sp-cb)"></path></mask><mask id="sp-mx" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"></rect><circle cx="50" cy="50" r="22" fill="none" stroke="#000" stroke-width="21" clip-path="url(#sp-ca)"></circle></mask></defs><circle class="mk-o" cx="50" cy="50" r="22" fill="none" stroke-width="12" mask="url(#sp-mo)"></circle><path class="mk-x" d="M22 22L78 78M78 22L22 78" stroke-width="12" stroke-linecap="round" fill="none" mask="url(#sp-mx)"></path></svg></div></div><div class="sp-name"><span class="a">X</span><span class="b">O</span> Igrice</div></div></div>
 
 <div class="safe-top"></div>
 
@@ -817,9 +886,9 @@
   <div class="stats">
     <!-- Križić Kružić -->
     <div class="stat-group" data-for="ttt">
-      <div class="stat x-stat" id="card-x" title="Igrač 1"><span class="sym">✕</span><span id="score-x">0</span></div>
+      <div class="stat x-stat" id="card-x" title="Igrač 1"><span class="sym"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></span><span id="score-x">0</span></div>
       <div class="stat draw-stat" id="card-draw" title="Remi"><span class="sym">=</span><span id="score-draw">0</span></div>
-      <div class="stat o-stat" id="card-o" title="Igrač 2"><span class="sym">○</span><span id="score-o">0</span></div>
+      <div class="stat o-stat" id="card-o" title="Igrač 2"><span class="sym"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.4"></circle></svg></span><span id="score-o">0</span></div>
     </div>
     <!-- Tango -->
     <div class="stat-group" data-for="tango">
@@ -828,7 +897,7 @@
     </div>
     <!-- Minolovac -->
     <div class="stat-group" data-for="mines">
-      <div class="stat mine-stat" title="Mine"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg><span id="m-mines">0</span></div>
+      <div class="stat mine-stat" title="Mine"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" aria-hidden="true"><circle cx="12" cy="12" r="6.4"></circle></svg><span id="m-mines">0</span></div>
       <div class="stat time-stat" title="Vrijeme"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg><span id="m-time">00:00</span></div>
       <div class="stat best-stat" title="Rekord"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"></path></svg><span id="m-best">—</span></div>
     </div>
@@ -880,7 +949,7 @@
     <div class="actions">
       <div class="seg" id="m-mode" role="group" aria-label="Način igre">
         <button id="m-mode-reveal" class="active">Otkrij</button>
-        <button id="m-mode-flag">Zastavica</button>
+        <button id="m-mode-flag"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>Zastavica</button>
       </div>
       <button class="fab" id="m-new" aria-label="Nova igra"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path></svg></button>
     </div>
@@ -898,10 +967,10 @@
 </main>
 
 <nav class="tabbar" aria-label="Igre">
-  <button data-game="ttt" class="active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>Križić Kružić</button>
-  <button data-game="tango"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>Tango</button>
-  <button data-game="mines"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10a5 5 0 1 0 0-10M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>Minolovac</button>
-  <button data-game="sky"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9h5v12M10 21V4h6v17M16 21v-8h4v8"></path></svg>Neboderi</button>
+  <button data-game="ttt" class="active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l6.5 6.5M10.5 4L4 10.5"></path><circle cx="16.8" cy="16.8" r="3.6"></circle></svg>Križić Kružić</button>
+  <button data-game="tango"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="6"></rect><path d="M6.6 10l4 4M10.6 10l-4 4"></path><circle cx="16" cy="12" r="2.3"></circle></svg>Tango</button>
+  <button data-game="mines"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><path d="M9 9l6 6M15 9l-6 6"></path></svg>Minolovac</button>
+  <button data-game="sky"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 20v-5M12 20V10M18 20V5"></path></svg>Neboderi</button>
 </nav>
 
 <!-- Postavke i upute -->
@@ -959,7 +1028,7 @@
 <!-- Tango overlay -->
 <div class="overlay" id="t-overlay">
   <div class="result-card">
-    <div class="emoji">🎉</div>
+    <div class="emoji"><svg class="res-mark" viewBox="0 0 100 100" aria-hidden="true"><circle class="mk-o" cx="50" cy="50" r="22" fill="none" stroke-width="12"></circle><path class="mk-x" d="M22 22L78 78M78 22L22 78" stroke-width="12" stroke-linecap="round" fill="none"></path></svg></div>
     <h2>Riješeno!</h2>
     <div class="big-time" id="t-final-time">00:00</div>
     <div class="record-badge" id="t-record-badge"></div>
@@ -971,7 +1040,7 @@
 <!-- Minolovac overlay -->
 <div class="overlay" id="m-overlay">
   <div class="result-card">
-    <div class="emoji" id="m-result-emoji">🎉</div>
+    <div class="emoji" id="m-result-emoji"></div>
     <h2 id="m-result-title">Pobjeda!</h2>
     <div class="big-time" id="m-final-time">00:00</div>
     <div class="record-badge" id="m-record-badge"></div>
@@ -983,7 +1052,7 @@
 <!-- Neboderi overlay -->
 <div class="overlay" id="sky-overlay">
   <div class="result-card">
-    <div class="emoji">🏙️</div>
+    <div class="emoji"><svg class="res-mark" viewBox="0 0 100 100" aria-hidden="true"><circle class="mk-o" cx="50" cy="50" r="22" fill="none" stroke-width="12"></circle><path class="mk-x" d="M22 22L78 78M78 22L22 78" stroke-width="12" stroke-linecap="round" fill="none"></path></svg></div>
     <h2>Riješeno!</h2>
     <div class="big-time" id="sky-final-time">00:00</div>
     <div class="record-badge" id="sky-record-badge"></div>
@@ -993,6 +1062,26 @@
 </div>
 
 <script>
+/* X i O kao vektori (dizajn paket): isti oblik u svim igrama */
+const XO_SVG = {
+  X: '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg>',
+  O: '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.4"></circle></svg>',
+  mark: '<svg class="res-mark" viewBox="0 0 100 100" aria-hidden="true"><circle class="mk-o" cx="50" cy="50" r="22" fill="none" stroke-width="12"></circle><path class="mk-x" d="M22 22L78 78M78 22L22 78" stroke-width="12" stroke-linecap="round" fill="none"></path></svg>'
+};
+
+/* Uvod traje 2 s, dodir ga preskače */
+(function () {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let timer = setTimeout(() => splash.remove(), reduce ? 1200 : 2050);
+  splash.addEventListener('pointerdown', () => {
+    clearTimeout(timer);
+    splash.classList.add('skip');
+    timer = setTimeout(() => splash.remove(), reduce ? 0 : 220);
+  }, { once: true });
+})();
+
 /* ======================================================================
    GAME SWITCHER
    ====================================================================== */
@@ -1123,9 +1212,9 @@ const tttOverlay  = delayedOverlay(overlay);
 
 function setStatus() {
   if (current === 'X') {
-    statusEl.innerHTML = `Na redu je <span class="highlight-x">Igrač 1 (✕)</span>`;
+    statusEl.innerHTML = `Na redu je <span class="highlight-x">Igrač 1 (X)</span>`;
   } else {
-    statusEl.innerHTML = `Na redu je <span class="highlight-o">Igrač 2 (○)</span>`;
+    statusEl.innerHTML = `Na redu je <span class="highlight-o">Igrač 2 (O)</span>`;
   }
 }
 
@@ -1145,12 +1234,12 @@ function highlightWinners(line) {
 
 function showOverlay(winner) {
   if (winner === 'draw') {
-    resultEmoji.textContent = '🤝';
+    resultEmoji.innerHTML = '<span class="res-draw">=</span>';
     resultTitle.textContent = 'Remi!';
     resultSub.textContent   = 'Nitko nije pobijedio ovaj put.';
   } else {
-    const name = winner === 'X' ? 'Igrač 1 (✕)' : 'Igrač 2 (○)';
-    resultEmoji.textContent = winner === 'X' ? '🎉' : '🏆';
+    const name = winner === 'X' ? 'Igrač 1 (X)' : 'Igrač 2 (O)';
+    resultEmoji.innerHTML = '<span class="res-' + winner.toLowerCase() + '">' + XO_SVG[winner] + '</span>';
     resultTitle.textContent = `Pobijedio ${name}!`;
     resultSub.textContent   = 'Čestitke!';
   }
@@ -1175,7 +1264,7 @@ cells.forEach(cell => {
     if (gameOver || board[i]) return;
 
     board[i] = current;
-    cell.textContent = current === 'X' ? '✕' : '○';
+    cell.innerHTML = XO_SVG[current];
     cell.classList.add(current.toLowerCase(), 'taken', 'pop');
     cell.addEventListener('animationend', () => cell.classList.remove('pop'), { once: true });
 
@@ -1187,7 +1276,7 @@ cells.forEach(cell => {
         statusEl.innerHTML = `<span style="color:#f0a500;font-weight:700">Remi!</span>`;
       } else {
         highlightWinners(result.line);
-        const name = result.winner === 'X' ? 'Igrač 1 (✕)' : 'Igrač 2 (○)';
+        const name = result.winner === 'X' ? 'Igrač 1 (X)' : 'Igrač 2 (O)';
         scores[result.winner]++;
         statusEl.innerHTML = result.winner === 'X'
           ? `<span class="highlight-x">${name} pobijedio!</span>`
@@ -1250,7 +1339,7 @@ window.addEventListener('orientationchange', () => { queueRefit(); setTimeout(qu
 const Tango = (() => {
   const N = 6, NEED = 3;          // 6x6, 3 of each per row/col
   const SUN = 1, MOON = 2;
-  const GLYPH = { [SUN]: '☀', [MOON]: '☾' };
+  const GLYPH = { [SUN]: XO_SVG.X, [MOON]: XO_SVG.O };
   const BEST_KEY = 'tango-best-ms';
 
   const idx = (r, c) => r * N + c;
@@ -1484,7 +1573,7 @@ const Tango = (() => {
 
   function renderCell(i) {
     const el = cellEls[i], v = values[i];
-    el.textContent = v ? GLYPH[v] : '';
+    el.innerHTML = v ? GLYPH[v] : '';
     el.classList.remove('sun', 'moon', 'given', 'error', 'solved');
     if (given[i]) el.classList.add('given');
     if (v === SUN) el.classList.add('sun');
@@ -1586,7 +1675,7 @@ const Tango = (() => {
     const { bad } = computeErrors();
     const filled = values.filter(v => v).length;
     statusEl.innerHTML = `Popunjeno ${filled} / ${N * N}`;
-    // Delay the red so a quick correction (☀ → ☾) doesn't briefly flash an error.
+    // Delay the red so a quick correction (X → O) doesn't briefly flash an error.
     if (bad.size) errorTimer = setTimeout(showErrors, 2000);
   }
 
@@ -1658,7 +1747,7 @@ const Tango = (() => {
     buildCells();
     renderAll();
     buildMarkers();
-    statusEl.textContent = 'Klikni ćeliju: ☀ → ☾ → prazno';
+    statusEl.textContent = 'Klikni ćeliju: X → O → prazno';
   }
 
   /* ---------- Lifecycle ---------- */
@@ -1931,10 +2020,10 @@ const Mines = (() => {
     const el = cellEls[i], cell = grid[i];
     el.className = 'm-cell';
     el.textContent = '';
-    if (cell.flagged && !cell.revealed) { el.classList.add('flag'); el.textContent = '🚩'; return; }
+    if (cell.flagged && !cell.revealed) { el.classList.add('flag'); el.innerHTML = XO_SVG.X; return; }
     if (!cell.revealed) return;
     el.classList.add('revealed');
-    if (cell.mine) { el.textContent = '💣'; el.classList.add('mine'); return; }
+    if (cell.mine) { el.innerHTML = XO_SVG.O; el.classList.add('mine'); return; }
     if (cell.adj > 0) { el.textContent = cell.adj; el.classList.add('n' + cell.adj); }
   }
 
@@ -1992,7 +2081,7 @@ const Mines = (() => {
     }
     cellEls[hit].classList.add('exploded');
     statusEl.innerHTML = `<span style="color:#e94560;font-weight:700">Bum! Nagazio si minu.</span>`;
-    resEmoji.textContent = '💥';
+    resEmoji.innerHTML = '<span class="res-boom">' + XO_SVG.O + '</span>';
     resTitle.textContent = 'Kraj igre';
     finalTime.textContent = fmt(elapsed());
     recordEl.textContent = '';
@@ -2018,7 +2107,7 @@ const Mines = (() => {
       try { localStorage.setItem('mines-best-' + level, String(ms)); } catch (e) {}
       renderBest();
     }
-    resEmoji.textContent = '🎉';
+    resEmoji.innerHTML = XO_SVG.mark;
     resTitle.textContent = 'Pobjeda!';
     finalTime.textContent = fmt(ms);
     recordEl.textContent = isRecord ? '★ NOVI REKORD ★' : '';
@@ -2564,7 +2653,7 @@ if (!['auto', 'dark', 'light'].includes(themePref)) themePref = 'auto';
 function applyTheme() {
   const light = themePref === 'light' || (themePref === 'auto' && lightQuery.matches);
   document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
-  themeMeta.setAttribute('content', light ? '#f3f5fa' : '#0d1321');
+  themeMeta.setAttribute('content', light ? '#f7f8fc' : '#1a1a2e');
   document.querySelectorAll('#theme-seg button').forEach(b =>
     b.classList.toggle('active', b.dataset.themePref === themePref));
 }
@@ -2582,7 +2671,7 @@ const INFO = {
   ttt: {
     title: 'Križić Kružić',
     rules: [
-      'Igrač 1 (✕) i Igrač 2 (○) naizmjence postavljaju svoj znak na prazno polje.',
+      'Igrač 1 (X) i Igrač 2 (O) naizmjence postavljaju svoj znak na prazno polje.',
       'Pobjeđuje tko prvi složi tri svoja znaka u redu, stupcu ili dijagonali.',
       'Ako su sva polja popunjena, a nitko nije pobijedio, igra je neriješena (remi).'
     ],
@@ -2591,19 +2680,19 @@ const INFO = {
   tango: {
     title: 'Tango',
     rules: [
-      'Popuni ploču suncima ☀ i mjesecima ☾: u svakom redu i stupcu mora biti po 3 sunca i 3 mjeseca.',
+      'Popuni ploču znakovima X i O: u svakom redu i stupcu mora biti po 3 X i 3 O.',
       'Više od dva ista znaka ne smiju stajati jedan do drugoga u redu ni u stupcu.',
       'Znak = između dva polja znači da su ista, a znak × da su različita.',
       'Svaka zagonetka ima jedno rješenje i može se riješiti logikom.'
     ],
-    hint: 'Dodir mijenja polje: prazno → sunce → mjesec → prazno. Dugi pritisak odmah postavlja mjesec. Zadana polja se ne mogu mijenjati.'
+    hint: 'Dodir mijenja polje: prazno → X → O → prazno. Dugi pritisak odmah postavlja O. Zadana polja se ne mogu mijenjati.'
   },
   mines: {
     title: 'Minolovac',
     rules: [
       'Otkrij sva polja na kojima nema mine.',
       'Broj na polju kaže koliko mina ima u osam susjednih polja.',
-      'Pronađene mine označi zastavicom: prebaci način na Zastavica ili dugo pritisni polje.',
+      'Pronađene mine označi zastavicom X: prebaci način na Zastavica ili dugo pritisni polje.',
       'Dodir na minu završava igru, a pobjeda je kad su otkrivena sva sigurna polja.'
     ],
     hint: 'Prvi dodir je uvijek siguran, a ploča se u pravilu može riješiti bez pogađanja. Brojač gore pokazuje koliko je mina još neoznačeno.'
