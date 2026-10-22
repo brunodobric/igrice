@@ -1064,10 +1064,17 @@ const XO_SVG = {
   mark: '<svg class="res-mark" viewBox="0 0 100 100" aria-hidden="true"><circle class="mk-o" cx="50" cy="50" r="22" fill="none" stroke-width="12"></circle><path class="mk-x" d="M22 22L78 78M78 22L22 78" stroke-width="12" stroke-linecap="round" fill="none"></path></svg>'
 };
 
+// iOS boju statusne trake čita samo pri učitavanju, pa se nakon promjene teme
+// stranica ponovno učita; ovdje se pamti gdje je korisnik bio
+const RESUME_KEY = 'igrice-resume';
+
 /* Uvod traje 2 s, dodir ga preskače */
 (function () {
   const splash = document.getElementById('splash');
   if (!splash) return;
+  let resuming = false;
+  try { resuming = sessionStorage.getItem(RESUME_KEY) !== null; } catch (e) {}
+  if (resuming) { splash.remove(); return; }
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let timer = setTimeout(() => splash.remove(), reduce ? 1200 : 2050);
   splash.addEventListener('pointerdown', () => {
@@ -2654,7 +2661,15 @@ document.querySelectorAll('#theme-seg button').forEach(btn => {
   btn.addEventListener('click', () => {
     themePref = btn.dataset.themePref;
     try { localStorage.setItem(THEME_KEY, themePref); } catch (e) {}
+    const before = document.querySelector('meta[name="theme-color"]').content;
     applyTheme();
+    // aplikacija s početnog zaslona na iOS-u ne osvježava statusnu traku sama
+    if (navigator.standalone && document.querySelector('meta[name="theme-color"]').content !== before) {
+      try {
+        sessionStorage.setItem(RESUME_KEY, activeGame);
+        location.reload();
+      } catch (e) {}
+    }
   });
 });
 lightQuery.addEventListener('change', applyTheme);
@@ -2759,6 +2774,16 @@ btnInfo.addEventListener('click', () => {
 backdrop.addEventListener('click', closeSheets);
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+// nakon ponovnog učitavanja zbog teme vrati igru i otvorene postavke
+(function () {
+  let game = null;
+  try { game = sessionStorage.getItem(RESUME_KEY); sessionStorage.removeItem(RESUME_KEY); } catch (e) {}
+  if (game === null) return;
+  const btn = document.querySelector('nav.tabbar button[data-game="' + game + '"]');
+  if (btn && game !== activeGame) btn.click();
+  btnSettings.click();
+})();
 
 // nova razina odmah pokreće novu igru – prozorčić se zatvori nakon kratke potvrde odabira
 document.querySelectorAll('#m-levels button, #sky-levels button').forEach(btn => {
