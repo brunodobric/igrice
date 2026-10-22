@@ -625,6 +625,54 @@
     .tabbar button.active { background: var(--tab-on); color: var(--text); font-weight: 700; }
     .tabbar button.active svg { color: var(--accent); }
 
+    /* ---------- Vodoravno (mobitel položen): traka lijevo, gumbi desno od ploče ---------- */
+    @media (orientation: landscape) and (max-height: 520px) {
+      body {
+        --hud-h: 60px;
+        --rail-x: calc(env(safe-area-inset-left, 0px) + 8px);
+        --rail-w: calc(var(--rail-x) + 72px + 8px);
+      }
+      .safe-top { display: none; }
+      .hud {
+        top: 0;
+        left: var(--rail-w);
+        right: env(safe-area-inset-right, 0px);
+        width: auto;
+        max-width: 560px;
+        padding: 8px 16px;
+      }
+      .stage {
+        top: var(--hud-h);
+        bottom: env(safe-area-inset-bottom, 0px);
+        left: var(--rail-w);
+        right: env(safe-area-inset-right, 0px);
+      }
+      .game { flex-direction: row; gap: 16px; }
+      .actions {
+        flex: none;
+        flex-direction: column;
+        align-items: center;
+        width: 160px;
+        height: auto;
+      }
+      .actions .pill-btn, .actions .seg { flex: none; width: 100%; height: 48px; }
+      .tabbar {
+        left: var(--rail-x);
+        right: auto;
+        top: 8px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+        margin: auto 0;
+        width: 72px;
+        height: auto;
+        max-height: 320px;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+        border-radius: 36px;
+      }
+      .tabbar button { white-space: normal; text-align: center; line-height: 1.15; }
+      #settings-sheet { left: calc(var(--rail-w) + 16px); max-height: calc(100% - var(--hud-h) - 12px); }
+    }
+
     /* ---------- Prozorčići: postavke i upute ---------- */
     .backdrop {
       position: absolute;
@@ -975,9 +1023,13 @@ navButtons.forEach(btn => {
    TOUCH / RESPONSIVE HELPERS  (shared by all games)
    ====================================================================== */
 // Prostor za ploču: prostor između gornjeg reda i donje trake, bez reda s gumbima.
+// Vodoravno su gumbi desno od ploče, pa se oduzimaju od širine, a ne od visine.
 const ACTIONS_H = 48 + 14;
+const ACTIONS_W = 160 + 16;
+const landscapeMq = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
 function stageSize() {
   const st = document.getElementById('stage');
+  if (landscapeMq.matches) return { w: Math.min(st.clientWidth - 24 - ACTIONS_W, 560), h: st.clientHeight - 16 };
   return { w: Math.min(st.clientWidth - 24, 560), h: st.clientHeight - ACTIONS_H - 8 };
 }
 
@@ -1179,6 +1231,18 @@ setActiveCard();
 function fitLayout() { fitViewportGap(); fitTicTacToe(); }
 fitLayout();
 window.addEventListener('resize', fitLayout);
+
+// iOS pri okretanju javi 'resize' prije nego se prikaz stvarno promijeni, pa bi
+// ploče ostale krive veličine. Zato pratimo stvarnu veličinu prostora za igru
+// i nakon svake promjene ponovno pošaljemo 'resize' svim igrama.
+let refitQueued = false;
+function queueRefit() {
+  if (refitQueued) return;
+  refitQueued = true;
+  requestAnimationFrame(() => { refitQueued = false; window.dispatchEvent(new Event('resize')); });
+}
+if (window.ResizeObserver) new ResizeObserver(queueRefit).observe(document.getElementById('stage'));
+window.addEventListener('orientationchange', () => { queueRefit(); setTimeout(queueRefit, 350); });
 
 /* ======================================================================
    TANGO
