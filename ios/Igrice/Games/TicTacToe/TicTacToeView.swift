@@ -111,8 +111,7 @@ private struct CellView: View {
                 RoundedRectangle(cornerRadius: 16).fill(fill)
                 RoundedRectangle(cornerRadius: 16).stroke(border, lineWidth: 2)
                 if let player {
-                    glyph(for: player)
-                        .frame(width: glyphSide, height: glyphSide)
+                    MarkGlyph(isX: player == .x, side: side * 0.58)
                         .transition(.scale(scale: 0.5).combined(with: .opacity))
                 }
             }
@@ -143,38 +142,6 @@ private struct CellView: View {
     private var border: Color {
         guard player != nil else { return .clear }
         return isWinner ? tint : tint.opacity(0.4)
-    }
-
-    /// Znak zauzima 58 % polja, a potez je 2,9 od 24 jedinice oblika (kao .glyph u index.html).
-    private var glyphSide: CGFloat { side * 0.58 }
-
-    @ViewBuilder
-    private func glyph(for player: Player) -> some View {
-        let style = StrokeStyle(lineWidth: glyphSide * 2.9 / 24, lineCap: .round)
-        switch player {
-        case .x: XGlyph().stroke(Theme.accent, style: style)
-        case .o: OGlyph().stroke(Theme.cyan, style: style)
-        }
-    }
-}
-
-/// X kao u XO_SVG: mreža 24 × 24, krakovi od 6,5 do 17,5.
-private struct XGlyph: Shape {
-    func path(in rect: CGRect) -> Path {
-        let s = min(rect.width, rect.height) / 24
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * s, y: rect.minY + y * s) }
-        var path = Path()
-        path.move(to: point(6.5, 6.5)); path.addLine(to: point(17.5, 17.5))
-        path.move(to: point(17.5, 6.5)); path.addLine(to: point(6.5, 17.5))
-        return path
-    }
-}
-
-/// O kao u XO_SVG: krug polumjera 6,4 u mreži 24 × 24.
-private struct OGlyph: Shape {
-    func path(in rect: CGRect) -> Path {
-        let s = min(rect.width, rect.height) / 24
-        return Path(ellipseIn: CGRect(x: rect.minX + 5.6 * s, y: rect.minY + 5.6 * s, width: 12.8 * s, height: 12.8 * s))
     }
 }
 

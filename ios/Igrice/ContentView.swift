@@ -20,6 +20,7 @@ struct ContentView: View {
             }
         }
         .tint(Theme.accent)
+        .environment(\.isGamePaused, sheet != nil)
         .sheet(item: $sheet) { sheet in
             switch sheet {
             case .settings: SettingsSheet(game: game)
@@ -37,6 +38,7 @@ private struct GameScreen: View {
     private var content: some View {
         switch game {
         case .ticTacToe: TicTacToeView()
+        case .tango: TangoView()
         default: GamePlaceholderView(game: game)
         }
     }
