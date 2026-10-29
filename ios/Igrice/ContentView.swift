@@ -40,7 +40,7 @@ private struct GameScreen: View {
         case .ticTacToe: TicTacToeView()
         case .tango: TangoView()
         case .minesweeper: MinesweeperView()
-        default: GamePlaceholderView(game: game)
+        case .skyscrapers: SkyscrapersView()
         }
     }
 
@@ -63,16 +63,6 @@ private struct GameScreen: View {
                     }
                 }
         }
-    }
-}
-
-/// Privremeni ekran dok igre ne budu portirane (faze 2 do 6).
-private struct GamePlaceholderView: View {
-    let game: Game
-
-    var body: some View {
-        ContentUnavailableView(game.title, systemImage: game.symbol,
-                               description: Text("Igra uskoro stiže."))
     }
 }
 
