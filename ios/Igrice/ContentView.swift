@@ -1,26 +1,25 @@
 import SwiftUI
 
-/// Glavni ekran: gornji red, igra i plutajuća donja traka.
+private enum ActiveSheet: String, Identifiable {
+    case settings, info
+    var id: String { rawValue }
+}
+
+/// Glavni ekran: sistemska tab traka s četiri igre. Svaka igra ima svoju
+/// navigacijsku traku s Postavkama i Pravilima.
 struct ContentView: View {
     @State private var game: Game = .ticTacToe
     @State private var sheet: ActiveSheet?
 
-    private enum ActiveSheet: String, Identifiable {
-        case settings, info
-        var id: String { rawValue }
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
-            topBar
-            GamePlaceholderView(game: game)
+        TabView(selection: $game) {
+            ForEach(Game.allCases) { game in
+                GameScreen(game: game) { sheet = $0 }
+                    .tabItem { Label(game.title, systemImage: game.symbol) }
+                    .tag(game)
+            }
         }
-        .background(XOBrand.background.ignoresSafeArea())
-        .safeAreaInset(edge: .bottom) {
-            FloatingTabBar(selection: $game)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-        }
+        .tint(Theme.accent)
         .sheet(item: $sheet) { sheet in
             switch sheet {
             case .settings: SettingsSheet(game: game)
@@ -28,40 +27,31 @@ struct ContentView: View {
             }
         }
     }
-
-    private var topBar: some View {
-        HStack(spacing: 10) {
-            TopBarButton(systemName: "gearshape", label: "Postavke") { sheet = .settings }
-
-            Text(game.title)
-                .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.text)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .background(Capsule().fill(Theme.surface))
-                .overlay(Capsule().stroke(Theme.line, lineWidth: 1))
-
-            TopBarButton(systemName: "info", label: "Pravila") { sheet = .info }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-    }
 }
 
-private struct TopBarButton: View {
-    let systemName: String
-    let label: String
-    let action: () -> Void
+private struct GameScreen: View {
+    let game: Game
+    let present: (ActiveSheet) -> Void
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Theme.cyan)
-                .frame(width: 44, height: 44)
-                .background(Circle().fill(Theme.surface))
-                .overlay(Circle().stroke(Theme.line, lineWidth: 1))
+        NavigationStack {
+            GamePlaceholderView(game: game)
+                .background(XOBrand.background.ignoresSafeArea())
+                .navigationTitle(game.title)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { present(.settings) } label: {
+                            Label("Postavke", systemImage: "gearshape")
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { present(.info) } label: {
+                            Label("Pravila", systemImage: "info.circle")
+                        }
+                    }
+                }
         }
-        .accessibilityLabel(label)
     }
 }
 
@@ -70,17 +60,8 @@ private struct GamePlaceholderView: View {
     let game: Game
 
     var body: some View {
-        VStack(spacing: 16) {
-            GameIcon(game: game, color: Theme.cyan, lineWidth: 3)
-                .frame(width: 72, height: 72)
-            Text(game.title)
-                .font(.system(size: 26, weight: .heavy, design: .rounded))
-                .foregroundStyle(Theme.text)
-            Text("Igra uskoro stiže.")
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundStyle(Theme.muted)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ContentUnavailableView(game.title, systemImage: game.symbol,
+                               description: Text("Igra uskoro stiže."))
     }
 }
 

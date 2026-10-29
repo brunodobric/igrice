@@ -63,6 +63,16 @@ enum Game: String, CaseIterable, Identifiable {
         }
     }
 
+    /// SF Symbol za karticu u traci.
+    var symbol: String {
+        switch self {
+        case .ticTacToe: "number"
+        case .tango: "circle.lefthalf.filled"
+        case .minesweeper: "flag"
+        case .skyscrapers: "building.2"
+        }
+    }
+
     /// Ključ pod kojim se pamti odabrana razina; nil ako igra nema razina.
     var levelKey: String? {
         switch self {

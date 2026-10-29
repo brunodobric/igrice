@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Zajednički izgled igara: boje, kartice za rezultat, gumbi i prozor s ishodom.
+/// Zajednički izgled igara: boje, kartica za rezultat i prozor s ishodom.
+/// Pravilo projekta: gdje postoji sistemska kontrola, koristi se ona (vidi ios/CLAUDE.md).
 /// Vrijednosti prate CSS varijable iz index.html (tamna i svijetla tema).
 enum Theme {
     static let surface = dynamicColor(dark: 0x20426B, light: 0xFFFFFF)         // ploha: gumbi, ploča, prozorčići
@@ -13,7 +14,6 @@ enum Theme {
     static let text = XOBrand.text
     static let accent = XOBrand.x
     static let cyan = XOBrand.o
-    static let onAccent = Color.white
 
     static var glass: Color { surface.opacity(0.8) }
     static var scrim: Color { Color.black.opacity(0.5) }
@@ -40,36 +40,6 @@ enum ThemePreference: String, CaseIterable {
         case .dark: .dark
         case .light: .light
         }
-    }
-}
-
-// MARK: - Gumbi
-
-struct PrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 17, weight: .bold, design: .rounded))
-            .foregroundStyle(Theme.onAccent)
-            .padding(.horizontal, 28)
-            .frame(minHeight: 48)
-            .background(Capsule().fill(Theme.accent))
-            .shadow(color: Theme.accent.opacity(0.4), radius: 8, y: 4)
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
-struct SecondaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 16, weight: .semibold, design: .rounded))
-            .foregroundStyle(Theme.text)
-            .padding(.horizontal, 20)
-            .frame(minHeight: 44)
-            .background(Capsule().fill(Theme.surface))
-            .overlay(Capsule().stroke(Theme.line, lineWidth: 1))
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
@@ -146,7 +116,9 @@ struct ResultOverlay: View {
                         .multilineTextAlignment(.center)
                 }
                 Button(buttonTitle, action: action)
-                    .buttonStyle(PrimaryButtonStyle())
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .tint(Theme.accent)
                     .padding(.top, 8)
             }
             .padding(28)
