@@ -5,6 +5,9 @@ struct TangoView: View {
     @AppStorage("tango-best-ms") private var bestMs = 0
     @State private var showErrors = false
     @State private var result: GameResult?
+    @State private var isActive = false
+
+    private static let saveKey = "tango-progress"
 
     var body: some View {
         VStack(spacing: 16) {
@@ -17,7 +20,20 @@ struct TangoView: View {
         }
         .padding(16)
         .sensoryFeedback(.impact, trigger: model.edits)
-        .onGameActivityChange { model.setActive($0) }
+        .onGameActivityChange { active in
+            isActive = active
+            model.setActive(active)
+            if !active { save() }
+        }
+        .onChange(of: model.edits) { save() }
+        .task {
+            guard !model.isReady else { return }
+            if let saved = GameStore.load(TangoSnapshot.self, key: Self.saveKey), model.restore(saved) {
+                model.setActive(isActive)
+            } else {
+                model.newPuzzle()
+            }
+        }
         .task(id: model.edits) { await revealErrorsAfterDelay() }
         .onChange(of: model.isSolved) { _, solved in
             if solved { finish() }
@@ -40,7 +56,16 @@ struct TangoView: View {
 
     // MARK: Ploča
 
+    @ViewBuilder
     private func board(available: CGFloat) -> some View {
+        if model.isReady {
+            readyBoard(available: available)
+        } else {
+            ProgressView()
+        }
+    }
+
+    private func readyBoard(available: CGFloat) -> some View {
         let padding: CGFloat = 11, gap: CGFloat = 6
         let count = CGFloat(TangoLogic.size)
         let cell = min(68, (min(available, 520) - 2 * padding - (count - 1) * gap) / count)
@@ -120,6 +145,11 @@ struct TangoView: View {
             ? "★ Novi rekord! ★"
             : "Tvoj rekord je \(GameTimer.format(Double(bestMs) / 1000))."
         result = GameResult(title: "Riješeno!", message: "Vrijeme \(time)\n\(message)")
+    }
+
+    private func save() {
+        guard model.isReady else { return }
+        GameStore.save(model.snapshot, key: Self.saveKey)
     }
 
     private func startNew() {

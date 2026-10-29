@@ -178,4 +178,52 @@ final class TangoModelTests: XCTestCase {
         XCTAssertFalse(model.timer.isRunning)
         XCTAssertFalse(model.timer.hasStarted)
     }
+
+    // MARK: Spremanje
+
+    func testSnapshotRoundTripRestoresPartialGame() throws {
+        var generator = SeededGenerator(seed: 5)
+        let puzzle = TangoLogic.makePuzzle(using: &generator)
+        let model = TangoModel(puzzle: puzzle)
+        let free = (0..<TangoLogic.cellCount).first { puzzle.given[$0] == nil }!
+        model.tap(free)
+        model.timer.restore(elapsed: 12)
+
+        let data = try JSONEncoder().encode(try XCTUnwrap(model.snapshot))
+        let loaded = try JSONDecoder().decode(TangoSnapshot.self, from: data)
+
+        let restored = TangoModel()
+        XCTAssertFalse(restored.isReady)
+        XCTAssertTrue(restored.restore(loaded))
+        XCTAssertTrue(restored.isReady)
+        XCTAssertEqual(restored.puzzle, puzzle)
+        XCTAssertEqual(restored.values, model.values)
+        XCTAssertEqual(restored.timer.elapsed(), 12, accuracy: 0.001)
+    }
+
+    func testRestoreRejectsInvalidSnapshots() {
+        let model = TangoModel()
+        let tooShort = TangoSnapshot(puzzle: TangoPuzzle(given: [], links: []), values: [], elapsed: 0)
+        XCTAssertFalse(model.restore(tooShort))
+
+        var cells: [TangoMark?] = Array(repeating: nil, count: TangoLogic.cellCount)
+        let badLink = TangoLink(pair: TangoPair(0, TangoLogic.cellCount), relation: .same)
+        XCTAssertFalse(model.restore(TangoSnapshot(puzzle: TangoPuzzle(given: cells, links: [badLink]),
+                                                   values: cells, elapsed: 0)))
+
+        let given = cells
+        cells[0] = .x                                       // vrijednost ne odgovara zadanom polju
+        var withGiven = given
+        withGiven[0] = .o
+        XCTAssertFalse(model.restore(TangoSnapshot(puzzle: TangoPuzzle(given: withGiven, links: []),
+                                                   values: cells, elapsed: 0)))
+        XCTAssertFalse(model.isReady)
+    }
+
+    func testSnapshotExistsOnlyOnceModelIsReady() {
+        var generator = SeededGenerator(seed: 11)
+        let solution = TangoLogic.generateSolution(using: &generator)
+        XCTAssertNotNil(TangoModel(puzzle: TangoPuzzle(given: solution, links: [])).snapshot)
+        XCTAssertNil(TangoModel().snapshot)
+    }
 }

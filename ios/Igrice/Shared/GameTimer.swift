@@ -49,6 +49,13 @@ final class GameTimer {
         hasStarted = false
     }
 
+    /// Vraća spremljeno vrijeme; mjerač ostaje zaustavljen dok ga igra ne nastavi.
+    func restore(elapsed: TimeInterval) {
+        accrued = max(0, elapsed)
+        startedAt = nil
+        hasStarted = elapsed > 0
+    }
+
     /// mm:ss, kao `fmt` u index.html.
     static func format(_ interval: TimeInterval) -> String {
         let total = max(0, Int(interval))

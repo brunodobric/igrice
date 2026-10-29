@@ -190,4 +190,43 @@ final class SkyscrapersModelTests: XCTestCase {
         model.setActive(true)
         XCTAssertTrue(model.timer.isRunning)
     }
+
+    // MARK: Spremanje
+
+    func testSnapshotRoundTrip() throws {
+        let clues = SkyscrapersLogic.computeClues(cyclic)
+        let model = SkyscrapersModel(mode: .pro, clues: clues)
+        model.raise(3)
+        model.raise(3)
+        model.timer.restore(elapsed: 20)
+
+        let data = try JSONEncoder().encode(try XCTUnwrap(model.snapshot))
+        let loaded = try JSONDecoder().decode(SkyscrapersSnapshot.self, from: data)
+
+        let restored = SkyscrapersModel()
+        XCTAssertNil(restored.snapshot)
+        XCTAssertTrue(restored.restore(loaded))
+        XCTAssertEqual(restored.mode, .pro)
+        XCTAssertEqual(restored.clues, clues)
+        XCTAssertEqual(restored.values[3], 2)
+        XCTAssertEqual(restored.timer.elapsed(), 20, accuracy: 0.001)
+    }
+
+    func testRestoreRejectsInvalidValues() {
+        let clues = SkyscrapersLogic.computeClues(cyclic)
+        let model = SkyscrapersModel()
+        XCTAssertFalse(model.restore(SkyscrapersSnapshot(mode: .classic, clues: clues, values: [1, 2], elapsed: 0)))
+
+        var tooHigh = Array(repeating: 0, count: size * size)
+        tooHigh[0] = 6
+        XCTAssertFalse(model.restore(SkyscrapersSnapshot(mode: .classic, clues: clues, values: tooHigh, elapsed: 0)))
+        XCTAssertNil(model.clues)
+    }
+
+    func testSolvedGameHasNoSnapshot() {
+        let model = SkyscrapersModel(clues: SkyscrapersLogic.computeClues(cyclic))
+        for (i, height) in cyclic.enumerated() { for _ in 0..<height { model.raise(i) } }
+        XCTAssertTrue(model.isSolved)
+        XCTAssertNil(model.snapshot)
+    }
 }

@@ -169,4 +169,44 @@ final class MinesweeperModelTests: XCTestCase {
         model.setActive(true)
         XCTAssertTrue(model.timer.isRunning)
     }
+
+    // MARK: Spremanje
+
+    func testSnapshotRoundTrip() throws {
+        let model = MinesweeperModel()
+        model.reveal(0, layout: layout([9, 63]))
+        model.toggleFlag(9)
+        model.timer.restore(elapsed: 30)
+
+        let data = try JSONEncoder().encode(try XCTUnwrap(model.snapshot))
+        let loaded = try JSONDecoder().decode(MinesweeperSnapshot.self, from: data)
+
+        let restored = MinesweeperModel()
+        XCTAssertTrue(restored.restore(loaded))
+        XCTAssertEqual(restored.cells, model.cells)
+        XCTAssertEqual(restored.flags, 1)
+        XCTAssertEqual(restored.revealedCount, model.revealedCount)
+        XCTAssertFalse(restored.isFirstMove)
+        XCTAssertEqual(restored.timer.elapsed(), 30, accuracy: 0.001)
+    }
+
+    func testNoSnapshotForUntouchedOrFinishedGame() {
+        let model = MinesweeperModel()
+        XCTAssertNil(model.snapshot)
+
+        model.reveal(0, layout: layout([63]))     // pobjeda
+        XCTAssertNil(model.snapshot)
+    }
+
+    func testRestoreRejectsInconsistentSnapshot() throws {
+        let model = MinesweeperModel()
+        model.reveal(0, layout: layout([9, 63]))
+        var snapshot = try XCTUnwrap(model.snapshot)
+        snapshot.flags = 3                           // ne odgovara zastavicama na ploči
+        XCTAssertFalse(MinesweeperModel().restore(snapshot))
+
+        snapshot.flags = 0
+        snapshot.cells.removeLast()
+        XCTAssertFalse(MinesweeperModel().restore(snapshot))
+    }
 }

@@ -40,6 +40,17 @@ final class GameTimerTests: XCTestCase {
         XCTAssertFalse(timer.isRunning)
     }
 
+    func testRestoreKeepsElapsedAndWaitsForResume() {
+        let timer = makeTimer()
+        timer.restore(elapsed: 42)
+        XCTAssertFalse(timer.isRunning)
+        XCTAssertEqual(timer.elapsed(), 42, accuracy: 0.001)
+
+        timer.resume()
+        current += 8
+        XCTAssertEqual(timer.elapsed(), 50, accuracy: 0.001)
+    }
+
     func testFormat() {
         XCTAssertEqual(GameTimer.format(0), "00:00")
         XCTAssertEqual(GameTimer.format(59.9), "00:59")

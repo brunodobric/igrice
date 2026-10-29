@@ -104,6 +104,7 @@ private struct CellView: View {
     let tap: () -> Void
 
     @State private var pulse = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: tap) {
@@ -122,7 +123,7 @@ private struct CellView: View {
         .buttonStyle(.plain)
         .animation(.spring(duration: 0.25, bounce: 0.3), value: player)
         .onChange(of: isWinner) { _, winner in
-            if winner {
+            if winner && !reduceMotion {
                 withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) { pulse = true }
             } else {
                 withAnimation(.default) { pulse = false }

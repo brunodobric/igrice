@@ -4,6 +4,9 @@ struct SkyscrapersView: View {
     @State private var model = SkyscrapersModel()
     @State private var result: GameResult?
     @State private var generation = 0
+    @State private var isActive = false
+
+    private static let saveKey = "sky-progress"
 
     @AppStorage("sky-mode") private var modeRaw = SkyscrapersMode.classic.rawValue
     @AppStorage("sky-best-easy") private var bestEasy = 0
@@ -21,10 +24,24 @@ struct SkyscrapersView: View {
         }
         .padding(16)
         .sensoryFeedback(.impact, trigger: model.edits)
-        .onGameActivityChange { model.setActive($0) }
-        .onChange(of: modeRaw, initial: true) { _, raw in
-            let mode = SkyscrapersMode(rawValue: raw) ?? .classic
-            if model.clues == nil || mode != model.mode { startNew(mode: mode) }
+        .onGameActivityChange { active in
+            isActive = active
+            model.setActive(active)
+            if !active { save() }
+        }
+        .onChange(of: model.edits) { save() }
+        .task {
+            guard generation == 0, model.clues == nil else { return }
+            let mode = SkyscrapersMode(rawValue: modeRaw) ?? .classic
+            if let saved = GameStore.load(SkyscrapersSnapshot.self, key: Self.saveKey),
+               saved.mode == mode, model.restore(saved) {
+                model.setActive(isActive)
+            } else {
+                startNew(mode: mode)
+            }
+        }
+        .onChange(of: modeRaw) { _, raw in
+            startNew(mode: SkyscrapersMode(rawValue: raw) ?? .classic)
         }
         .onChange(of: model.isSolved) { _, solved in
             if solved { finish() }
@@ -126,6 +143,11 @@ struct SkyscrapersView: View {
     }
 
     // MARK: Tijek igre
+
+    private func save() {
+        guard model.clues != nil else { return }
+        GameStore.save(model.snapshot, key: Self.saveKey)
+    }
 
     /// Zagonetka se traži u pozadini (Klasično i Pro mogu trajati), pa sučelje ne zastaje.
     private func startNew(mode: SkyscrapersMode? = nil) {

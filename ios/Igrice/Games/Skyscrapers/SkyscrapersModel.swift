@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// Težina: Lagano (svi tragovi), Klasično (rješivo logikom), Pro (jedno rješenje, može tražiti pogađanje).
-enum SkyscrapersMode: String, CaseIterable, Sendable {
+enum SkyscrapersMode: String, CaseIterable, Sendable, Codable {
     case easy, classic, pro
 
     var label: String {
@@ -19,7 +19,7 @@ enum SkyscrapersSide: CaseIterable, Sendable {
 }
 
 /// Tragovi uz rub: koliko se nebodera vidi iz tog smjera; 0 znači da trag nije prikazan.
-struct SkyscrapersClues: Equatable, Sendable {
+struct SkyscrapersClues: Equatable, Sendable, Codable {
     var top: [Int]
     var bottom: [Int]
     var left: [Int]
@@ -43,6 +43,14 @@ struct SkyscrapersClues: Equatable, Sendable {
             }
         }
     }
+}
+
+/// Spremljena nedovršena partija.
+struct SkyscrapersSnapshot: Codable, Equatable {
+    var mode: SkyscrapersMode
+    var clues: SkyscrapersClues
+    var values: [Int]
+    var elapsed: TimeInterval
 }
 
 struct SkyscrapersClueID: Hashable {
@@ -341,6 +349,30 @@ final class SkyscrapersModel {
     var errors: SkyscrapersErrors {
         guard let clues else { return SkyscrapersErrors() }
         return SkyscrapersLogic.errors(values: values, clues: clues)
+    }
+
+    /// Stanje za spremanje; nil kad nema što spremiti (nije spremno ili je riješeno).
+    var snapshot: SkyscrapersSnapshot? {
+        guard let clues, !isSolved else { return nil }
+        return SkyscrapersSnapshot(mode: mode, clues: clues, values: values, elapsed: timer.elapsed())
+    }
+
+    /// Vraća spremljenu partiju; false ako spremljeni podaci nisu valjani.
+    @discardableResult
+    func restore(_ snapshot: SkyscrapersSnapshot) -> Bool {
+        let size = SkyscrapersLogic.size
+        let clues = snapshot.clues
+        guard snapshot.values.count == size * size, snapshot.values.allSatisfy({ (0...size).contains($0) }),
+              [clues.top, clues.bottom, clues.left, clues.right].allSatisfy({ $0.count == size && $0.allSatisfy { (0...size).contains($0) } })
+        else { return false }
+        self.clues = clues
+        mode = snapshot.mode
+        values = snapshot.values
+        isSolved = false
+        solveTime = nil
+        timer.restore(elapsed: snapshot.elapsed)
+        edits += 1
+        return true
     }
 
     /// Nova zagonetka je spremna: prazna ploča, mjerač od nule.

@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// Znak u polju: X (sunce u web verziji) ili O (mjesec).
-enum TangoMark: Equatable {
+enum TangoMark: Equatable, Codable {
     case x, o
 
     /// Mjesto u brojačima po redu i stupcu.
@@ -10,12 +10,12 @@ enum TangoMark: Equatable {
 }
 
 /// Veza između dva susjedna polja: `=` znači ista, `×` različita.
-enum TangoRelation: Equatable {
+enum TangoRelation: Equatable, Codable {
     case same, different
 }
 
 /// Neuređen par polja, da je ključ isti u oba smjera (`conKey` u index.html).
-struct TangoPair: Hashable {
+struct TangoPair: Hashable, Codable {
     let a: Int
     let b: Int
 
@@ -25,14 +25,21 @@ struct TangoPair: Hashable {
     }
 }
 
-struct TangoLink: Equatable {
+struct TangoLink: Equatable, Codable {
     let pair: TangoPair
     let relation: TangoRelation
 }
 
-struct TangoPuzzle: Equatable {
+struct TangoPuzzle: Equatable, Codable {
     var given: [TangoMark?]
     var links: [TangoLink]
+}
+
+/// Spremljena nedovršena partija.
+struct TangoSnapshot: Codable, Equatable {
+    var puzzle: TangoPuzzle
+    var values: [TangoMark?]
+    var elapsed: TimeInterval
 }
 
 struct TangoErrors: Equatable {
@@ -259,15 +266,43 @@ final class TangoModel {
     private(set) var edits = 0
     let timer: GameTimer
 
+    /// Bez zagonetke model ostaje prazan (`isReady` je false) dok se ne pozove `newPuzzle` ili `restore`,
+    /// da se generiranje ne ponavlja pri svakom stvaranju prikaza.
     init(puzzle: TangoPuzzle? = nil, timer: GameTimer = GameTimer()) {
-        let start = puzzle ?? TangoLogic.makePuzzle()
+        let start = puzzle ?? TangoPuzzle(given: [], links: [])
         self.puzzle = start
         self.values = start.given
         self.timer = timer
     }
 
+    var isReady: Bool { !values.isEmpty }
     var filledCount: Int { values.filter { $0 != nil }.count }
-    var errors: TangoErrors { isSolved ? TangoErrors() : TangoLogic.errors(values: values, links: puzzle.links) }
+    var errors: TangoErrors {
+        isSolved || !isReady ? TangoErrors() : TangoLogic.errors(values: values, links: puzzle.links)
+    }
+
+    /// Stanje za spremanje; nil kad nema što spremiti (nije spremno ili je riješeno).
+    var snapshot: TangoSnapshot? {
+        guard isReady, !isSolved else { return nil }
+        return TangoSnapshot(puzzle: puzzle, values: values, elapsed: timer.elapsed())
+    }
+
+    /// Vraća spremljenu partiju; false ako spremljeni podaci nisu valjani.
+    @discardableResult
+    func restore(_ snapshot: TangoSnapshot) -> Bool {
+        let count = TangoLogic.cellCount
+        guard snapshot.puzzle.given.count == count, snapshot.values.count == count,
+              snapshot.puzzle.links.allSatisfy({ $0.pair.a >= 0 && $0.pair.a < $0.pair.b && $0.pair.b < count }),
+              (0..<count).allSatisfy({ snapshot.puzzle.given[$0] == nil || snapshot.values[$0] == snapshot.puzzle.given[$0] })
+        else { return false }
+        puzzle = snapshot.puzzle
+        values = snapshot.values
+        isSolved = false
+        solveTime = nil
+        timer.restore(elapsed: snapshot.elapsed)
+        edits += 1
+        return true
+    }
 
     /// Dodir: prazno → X → O → prazno.
     func tap(_ i: Int) {

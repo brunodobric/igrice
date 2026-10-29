@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-enum MinesweeperLevel: String, CaseIterable {
+enum MinesweeperLevel: String, CaseIterable, Codable {
     case easy, medium, hard
 
     var rows: Int { cols }
@@ -212,10 +212,22 @@ enum MinesweeperLogic {
     }
 }
 
+/// Spremljena nedovršena partija.
+struct MinesweeperSnapshot: Codable, Equatable {
+    var level: MinesweeperLevel
+    var cells: [MinesweeperModel.Cell]
+    var mineCount: Int
+    var flags: Int
+    var revealedCount: Int
+    var isFirstMove: Bool
+    var mayNeedGuess: Bool
+    var elapsed: TimeInterval
+}
+
 /// Stanje jedne partije Minolovca.
 @Observable
 final class MinesweeperModel {
-    struct Cell: Equatable {
+    struct Cell: Equatable, Codable {
         var isMine = false
         var adjacent = 0
         var isRevealed = false
@@ -254,6 +266,38 @@ final class MinesweeperModel {
     var cols: Int { level.cols }
     var minesLeft: Int { mineCount - flags }
     var isOver: Bool { outcome != nil }
+
+    /// Stanje za spremanje; nil kad nema što spremiti (igra je gotova ili još nije dirnuta).
+    var snapshot: MinesweeperSnapshot? {
+        guard !isOver, !(isFirstMove && flags == 0) else { return nil }
+        return MinesweeperSnapshot(level: level, cells: cells, mineCount: mineCount, flags: flags,
+                                   revealedCount: revealedCount, isFirstMove: isFirstMove,
+                                   mayNeedGuess: mayNeedGuess, elapsed: timer.elapsed())
+    }
+
+    /// Vraća spremljenu partiju; false ako spremljeni podaci nisu valjani.
+    @discardableResult
+    func restore(_ snapshot: MinesweeperSnapshot) -> Bool {
+        let level = snapshot.level
+        guard snapshot.cells.count == level.rows * level.cols,
+              snapshot.cells.filter(\.isMine).count == (snapshot.isFirstMove ? 0 : snapshot.mineCount),
+              snapshot.cells.filter(\.isRevealed).count == snapshot.revealedCount,
+              snapshot.cells.filter(\.isFlagged).count == snapshot.flags
+        else { return false }
+        self.level = level
+        geometry = MinesGeometry(rows: level.rows, cols: level.cols)
+        cells = snapshot.cells
+        mineCount = snapshot.mineCount
+        flags = snapshot.flags
+        revealedCount = snapshot.revealedCount
+        isFirstMove = snapshot.isFirstMove
+        mayNeedGuess = snapshot.mayNeedGuess
+        outcome = nil
+        finishTime = nil
+        timer.restore(elapsed: snapshot.elapsed)
+        moves += 1
+        return true
+    }
 
     /// Pogrešno postavljena zastavica prikazuje se tek kad je igra izgubljena.
     func isWrongFlag(_ i: Int) -> Bool {

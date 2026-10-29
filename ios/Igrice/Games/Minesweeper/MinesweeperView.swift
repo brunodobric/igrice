@@ -5,6 +5,10 @@ struct MinesweeperView: View {
     @State private var flagMode = false
     @State private var isGenerating = false
     @State private var result: GameResult?
+    @State private var isActive = false
+    @State private var restoreAttempted = false
+
+    private static let saveKey = "mines-progress"
 
     @AppStorage("mines-level") private var levelRaw = MinesweeperLevel.easy.rawValue
     @AppStorage("mines-best-easy") private var bestEasy = 0
@@ -29,7 +33,19 @@ struct MinesweeperView: View {
             case nil: nil
             }
         }
-        .onGameActivityChange { model.setActive($0) }
+        .onGameActivityChange { active in
+            isActive = active
+            model.setActive(active)
+            if !active { save() }
+        }
+        .onChange(of: model.moves) { save() }
+        .task {
+            defer { restoreAttempted = true }
+            guard model.isFirstMove, model.flags == 0, !model.timer.hasStarted,
+                  let saved = GameStore.load(MinesweeperSnapshot.self, key: Self.saveKey),
+                  saved.level.rawValue == levelRaw, model.restore(saved) else { return }
+            model.setActive(isActive)
+        }
         .onChange(of: levelRaw, initial: true) { _, raw in
             let level = MinesweeperLevel(rawValue: raw) ?? .easy
             if level != model.level { startNew(level: level) }
@@ -138,6 +154,11 @@ struct MinesweeperView: View {
             if level == model.level, model.isFirstMove { model.reveal(index, layout: layout) }
             isGenerating = false
         }
+    }
+
+    private func save() {
+        guard restoreAttempted else { return }   // prije pokušaja povrata ne briši spremljeno
+        GameStore.save(model.snapshot, key: Self.saveKey)
     }
 
     private func startNew(level: MinesweeperLevel? = nil) {
