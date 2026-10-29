@@ -21,3 +21,26 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+  IgriceTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - IgriceTests
+    dependencies:
+      - target: Igrice
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.brunodobric.igrice.tests
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Igrice:
+    build:
+      targets:
+        Igrice: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - IgriceTests

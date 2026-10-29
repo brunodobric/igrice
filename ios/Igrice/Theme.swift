@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Zajednički izgled igara: boje, kartica za rezultat i prozor s ishodom.
+/// Zajednički izgled igara: boje, kartica za rezultat i odabir teme.
 /// Pravilo projekta: gdje postoji sistemska kontrola, koristi se ona (vidi ios/CLAUDE.md).
 /// Vrijednosti prate CSS varijable iz index.html (tamna i svijetla tema).
 enum Theme {
@@ -67,82 +67,4 @@ struct ScoreCard: View {
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(isActive ? tint : Theme.line, lineWidth: isActive ? 2 : 1))
         .accessibilityElement(children: .combine)
     }
-}
-
-// MARK: - Prozor s ishodom
-
-enum ResultMark {
-    case xo
-    case emoji(String)
-}
-
-/// Prozor koji se prikaže na kraju igre: znak, naslov, vrijeme, oznaka rekorda, poruka i gumb.
-struct ResultOverlay: View {
-    var mark: ResultMark = .xo
-    let title: String
-    var time: String?
-    var recordBadge: String?
-    var message: String?
-    let buttonTitle: String
-    let action: () -> Void
-
-    var body: some View {
-        ZStack {
-            Theme.scrim.ignoresSafeArea()
-
-            VStack(spacing: 12) {
-                markView
-                Text(title)
-                    .font(.system(size: 28, weight: .heavy, design: .rounded))
-                    .foregroundStyle(Theme.text)
-                if let time {
-                    Text(time)
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(Theme.cyan)
-                }
-                if let recordBadge {
-                    Text(recordBadge)
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.gold)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Theme.gold.opacity(0.15)))
-                }
-                if let message {
-                    Text(message)
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundStyle(Theme.muted)
-                        .multilineTextAlignment(.center)
-                }
-                Button(buttonTitle, action: action)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .tint(Theme.accent)
-                    .padding(.top, 8)
-            }
-            .padding(28)
-            .frame(maxWidth: 320)
-            .background(RoundedRectangle(cornerRadius: 28).fill(Theme.surface))
-            .overlay(RoundedRectangle(cornerRadius: 28).stroke(Theme.line, lineWidth: 1))
-            .padding(24)
-        }
-        .accessibilityAddTraits(.isModal)
-    }
-
-    @ViewBuilder
-    private var markView: some View {
-        switch mark {
-        case .xo:
-            XOLogo().frame(width: 72, height: 72)
-        case .emoji(let symbol):
-            Text(symbol).font(.system(size: 60))
-        }
-    }
-}
-
-#Preview {
-    ResultOverlay(title: "Riješeno!", time: "01:23", recordBadge: "Novi rekord!",
-                  message: "Bravo, zagonetka je riješena!", buttonTitle: "Nova zagonetka") { }
-        .background(XOBrand.background)
 }

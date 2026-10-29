@@ -33,9 +33,17 @@ private struct GameScreen: View {
     let game: Game
     let present: (ActiveSheet) -> Void
 
+    @ViewBuilder
+    private var content: some View {
+        switch game {
+        case .ticTacToe: TicTacToeView()
+        default: GamePlaceholderView(game: game)
+        }
+    }
+
     var body: some View {
         NavigationStack {
-            GamePlaceholderView(game: game)
+            content
                 .background(XOBrand.background.ignoresSafeArea())
                 .navigationTitle(game.title)
                 .navigationBarTitleDisplayMode(.inline)

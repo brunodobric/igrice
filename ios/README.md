@@ -21,7 +21,7 @@ Ako već imaš vlastiti Xcode projekt, povuci mapu `Igrice/` u njega i obriši `
 
 - `Igrice/IgriceApp.swift` ulaz, uvodna animacija pa `ContentView`
 - `Igrice/ContentView.swift` sistemski `TabView` s četiri igre, navigacijska traka s Postavkama i Pravilima
-- `Igrice/Theme.swift` boje, `ScoreCard`, `ResultOverlay`, odabir teme
+- `Igrice/Theme.swift` boje, `ScoreCard`, odabir teme
 - `Igrice/Brand/` logo i uvodna animacija
 - `Igrice/Shared/` dijelovi zajednički igrama
 - `Igrice/Games/<Igra>/` Model (čista logika) i View po igri
