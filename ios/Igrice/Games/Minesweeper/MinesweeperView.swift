@@ -85,7 +85,6 @@ struct MinesweeperView: View {
         let columns = CGFloat(model.cols)
         let cell = max(12, min(maxCellSize(model.level),
                                ((available - 2 * padding - (columns - 1) * gap) / columns).rounded(.down)))
-        let side = columns * cell + (columns - 1) * gap + 2 * padding
 
         return Grid(horizontalSpacing: gap, verticalSpacing: gap) {
             ForEach(0..<model.rows, id: \.self) { row in
