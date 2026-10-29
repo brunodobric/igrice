@@ -97,12 +97,12 @@ final class MinesweeperModelTests: XCTestCase {
 
     func testHittingMineLosesAndRevealsMines() {
         let model = MinesweeperModel()
-        model.reveal(0, layout: layout([10, 63]))
+        model.reveal(0, layout: layout([9, 63]))
         XCTAssertNil(model.outcome)
 
-        model.reveal(10)
-        XCTAssertEqual(model.outcome, .lost(exploded: 10))
-        XCTAssertTrue(model.cells[10].isRevealed)
+        model.reveal(9)
+        XCTAssertEqual(model.outcome, .lost(exploded: 9))
+        XCTAssertTrue(model.cells[9].isRevealed)
         XCTAssertTrue(model.cells[63].isRevealed)
         XCTAssertFalse(model.timer.isRunning)
 
@@ -112,16 +112,16 @@ final class MinesweeperModelTests: XCTestCase {
 
     func testFlagsCountAndBlockReveal() {
         let model = MinesweeperModel()
-        model.reveal(0, layout: layout([10, 63]))
+        model.reveal(0, layout: layout([9, 63]))
 
-        model.toggleFlag(10)
+        model.toggleFlag(9)
         XCTAssertEqual(model.flags, 1)
         XCTAssertEqual(model.minesLeft, 1)
-        model.reveal(10)                                 // označeno polje se ne otvara
+        model.reveal(9)                                 // označeno polje se ne otvara
         XCTAssertNil(model.outcome)
-        XCTAssertFalse(model.cells[10].isRevealed)
+        XCTAssertFalse(model.cells[9].isRevealed)
 
-        model.toggleFlag(10)
+        model.toggleFlag(9)
         XCTAssertEqual(model.flags, 0)
     }
 
@@ -134,10 +134,10 @@ final class MinesweeperModelTests: XCTestCase {
 
     func testWrongFlagsAreShownOnlyAfterLoss() {
         let model = MinesweeperModel()
-        model.reveal(0, layout: layout([10, 63]))
+        model.reveal(0, layout: layout([9, 63]))
         model.toggleFlag(20)                              // pogrešna zastavica
         XCTAssertFalse(model.isWrongFlag(20))
-        model.reveal(10)
+        model.reveal(9)
         XCTAssertTrue(model.isWrongFlag(20))
     }
 
@@ -150,7 +150,7 @@ final class MinesweeperModelTests: XCTestCase {
 
     func testNewGameResetsAndSwitchesLevel() {
         let model = MinesweeperModel()
-        model.reveal(0, layout: layout([10, 63]))
+        model.reveal(0, layout: layout([9, 63]))
         model.newGame(level: .hard)
         XCTAssertEqual(model.level, .hard)
         XCTAssertEqual(model.cells.count, 256)
@@ -162,7 +162,7 @@ final class MinesweeperModelTests: XCTestCase {
 
     func testInactiveGamePausesTimer() {
         let model = MinesweeperModel()
-        model.reveal(0, layout: layout([10, 63]))
+        model.reveal(0, layout: layout([9, 63]))
         XCTAssertTrue(model.timer.isRunning)
         model.setActive(false)
         XCTAssertFalse(model.timer.isRunning)
