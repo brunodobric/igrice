@@ -13,7 +13,19 @@ enum Theme {
 
     static let text = XOBrand.text
     static let accent = XOBrand.x
+    static let onAccent = Color.white
     static let cyan = XOBrand.o
+
+    /// Boje brojeva u Minolovcu; nikad boje X-a (koralj) ni O-a (cijan).
+    static func mineNumber(_ n: Int) -> Color {
+        let colors: [Color] = [
+            dynamicColor(dark: 0x8EA6FF, light: 0x3D5FD6), dynamicColor(dark: 0x5BE49B, light: 0x1E8A5C),
+            dynamicColor(dark: 0xFF9F6B, light: 0xC4561A), dynamicColor(dark: 0xB892FF, light: 0x6B3FC9),
+            dynamicColor(dark: 0xFFD166, light: 0x8A6D00), dynamicColor(dark: 0xC7D0E8, light: 0x4D5B7C),
+            dynamicColor(dark: 0xF1F4FA, light: 0x141A2B), dynamicColor(dark: 0xA3AECB, light: 0x56607A)
+        ]
+        return colors[min(max(n, 1), 8) - 1]
+    }
 
     static var glass: Color { surface.opacity(0.8) }
     static var scrim: Color { Color.black.opacity(0.5) }

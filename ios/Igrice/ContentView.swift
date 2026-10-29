@@ -39,6 +39,7 @@ private struct GameScreen: View {
         switch game {
         case .ticTacToe: TicTacToeView()
         case .tango: TangoView()
+        case .minesweeper: MinesweeperView()
         default: GamePlaceholderView(game: game)
         }
     }

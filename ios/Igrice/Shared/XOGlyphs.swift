@@ -20,18 +20,21 @@ struct OGlyph: Shape {
     }
 }
 
-/// Znak X ili O u boji igrača, veličine kao `.glyph` u index.html (potez 2,9 od 24 jedinice).
+/// Znak X ili O, veličine kao `.glyph` u index.html (potez 2,9 od 24 jedinice; u Minolovcu 3,4).
 struct MarkGlyph: View {
     let isX: Bool
     var side: CGFloat
+    var weight: CGFloat = 2.9
+    var color: Color?
 
     var body: some View {
-        let style = StrokeStyle(lineWidth: side * 2.9 / 24, lineCap: .round)
+        let style = StrokeStyle(lineWidth: side * weight / 24, lineCap: .round)
+        let tint = color ?? (isX ? Theme.accent : Theme.cyan)
         Group {
             if isX {
-                XGlyph().stroke(Theme.accent, style: style)
+                XGlyph().stroke(tint, style: style)
             } else {
-                OGlyph().stroke(Theme.cyan, style: style)
+                OGlyph().stroke(tint, style: style)
             }
         }
         .frame(width: side, height: side)

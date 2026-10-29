@@ -4,13 +4,7 @@ struct TangoView: View {
     @State private var model = TangoModel()
     @AppStorage("tango-best-ms") private var bestMs = 0
     @State private var showErrors = false
-    @State private var result: SolvedResult?
-    @State private var showResult = false
-
-    private struct SolvedResult: Equatable {
-        let time: String
-        let message: String
-    }
+    @State private var result: GameResult?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -28,16 +22,7 @@ struct TangoView: View {
         .onChange(of: model.isSolved) { _, solved in
             if solved { finish() }
         }
-        .task(id: result) {
-            guard result != nil else { return }
-            try? await Task.sleep(for: .milliseconds(500))
-            if !Task.isCancelled { showResult = true }
-        }
-        .alert("Riješeno!", isPresented: $showResult, presenting: result) { _ in
-            Button("Nova zagonetka") { startNew() }
-        } message: { result in
-            Text("Vrijeme \(result.time)\n\(result.message)")
-        }
+        .gameResultAlert($result, buttonTitle: "Nova zagonetka") { model.newPuzzle() }
     }
 
     // MARK: Gornji red
@@ -134,12 +119,11 @@ struct TangoView: View {
         let message = isRecord
             ? "★ Novi rekord! ★"
             : "Tvoj rekord je \(GameTimer.format(Double(bestMs) / 1000))."
-        result = SolvedResult(time: time, message: message)
+        result = GameResult(title: "Riješeno!", message: "Vrijeme \(time)\n\(message)")
     }
 
     private func startNew() {
         result = nil
-        showResult = false
         model.newPuzzle()
     }
 }
