@@ -1,6 +1,8 @@
 package com.brunodobric.igrice.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,6 +12,9 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -85,6 +90,43 @@ fun RulesSheet(game: Game, onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+            )
+        }
+    }
+}
+
+/** Postavke u sistemskom donjem listu: zasad samo tema (Auto, Tamna, Svijetla). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsSheet(
+    themePreference: ThemePreference,
+    onThemePreferenceChange: (ThemePreference) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Postavke", style = MaterialTheme.typography.titleLarge)
+            Text(
+                "Tema",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                ThemePreference.entries.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = option == themePreference,
+                        onClick = { onThemePreferenceChange(option) },
+                        shape = SegmentedButtonDefaults.itemShape(index, ThemePreference.entries.size),
+                    ) { Text(option.label) }
+                }
+            }
+            Text(
+                "Auto prati tamni način rada na telefonu.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

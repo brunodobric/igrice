@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Android 12+ sam crta uvodni ekran. Pozadina je ista kao prvi kadar animacije u aplikaciji,
+        a ikona je prozirna, da sustav ne prikaže ikonu u krugu prije animacije.
+    -->
+    <style name="Theme.Igrice" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:windowSplashScreenBackground">@color/window_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+    </style>
+</resources>

@@ -24,8 +24,9 @@ Testovi logike: desni klik na `app/src/test` › **Run 'Tests in …'**, ili u t
 app/src/main/java/com/brunodobric/igrice/
   MainActivity.kt, IgriceApp.kt   ulaz i navigacija (TopAppBar + NavigationBar)
   Game.kt                         popis igara, pravila i savjeti
-  ui/Theme.kt                     boje brenda, Material tema, ScoreCard, znakovi X i O
-  ui/Components.kt                dijalog s ishodom, pravila u donjem listu
+  ui/Theme.kt                     boje brenda, Material tema, odabir teme, ScoreCard, znakovi X i O
+  ui/Splash.kt                    logo i uvodna animacija
+  ui/Components.kt                dijalog s ishodom, pravila i postavke u donjem listu
   shared/                         GameTimer (čista logika), Records (SharedPreferences)
   games/minesweeper/              MinesweeperModel.kt (logika), MinesweeperScreen.kt (prikaz)
   games/tango/                    TangoModel.kt (logika), TangoScreen.kt (prikaz)
