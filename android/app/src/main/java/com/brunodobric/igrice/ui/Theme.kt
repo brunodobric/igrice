@@ -89,6 +89,25 @@ private val LightBrand = BrandColors(
 
 val LocalBrand = staticCompositionLocalOf { DarkBrand }
 
+/** Odabir teme; pamti se pod istim ključem kao na webu i iOS-u (`igrice-theme`). */
+enum class ThemePreference(val key: String, val label: String) {
+    AUTO("auto", "Auto"),
+    DARK("dark", "Tamna"),
+    LIGHT("light", "Svijetla");
+
+    /** Je li tema tamna, uz zadanu postavku sustava. */
+    fun isDark(systemDark: Boolean): Boolean = when (this) {
+        AUTO -> systemDark
+        DARK -> true
+        LIGHT -> false
+    }
+
+    companion object {
+        const val STORAGE_KEY = "igrice-theme"
+        fun fromKey(key: String?): ThemePreference = entries.firstOrNull { it.key == key } ?: AUTO
+    }
+}
+
 /** Material 3 tema obojana bojama brenda; tamna ili svijetla prema postavci sustava. */
 @Composable
 fun IgriceTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
