@@ -7,7 +7,7 @@ Nativna Android verzija (Kotlin, Jetpack Compose, Material 3), samo telefon, por
 | Minolovac | portiran (Lako, Srednje, Teško; generator bez pogađanja) |
 | Tango | portiran (6 × 6, znakovi = i ×, zagonetke rješive logikom) |
 | Neboderi | portiran (Lagano, Klasično, Pro; 5 × 5) |
-| Križić Kružić | uskoro |
+| Križić Kružić | portiran (dva igrača, bodovi u sesiji) |
 
 ## Otvaranje i pokretanje
 
@@ -25,9 +25,10 @@ app/src/main/java/com/brunodobric/igrice/
   MainActivity.kt, IgriceApp.kt   ulaz i navigacija (TopAppBar + NavigationBar)
   Game.kt                         popis igara, pravila i savjeti
   ui/Theme.kt                     boje brenda, Material tema, ScoreCard, znakovi X i O
-  ui/Components.kt                dijalog s ishodom, pravila u donjem listu, „Uskoro”
+  ui/Components.kt                dijalog s ishodom, pravila u donjem listu
   shared/                         GameTimer (čista logika), Records (SharedPreferences)
   games/minesweeper/              MinesweeperModel.kt (logika), MinesweeperScreen.kt (prikaz)
   games/tango/                    TangoModel.kt (logika), TangoScreen.kt (prikaz)
+  games/tictactoe/                TicTacToeModel.kt (logika), TicTacToeScreen.kt (prikaz)
   games/skyscrapers/              SkyscrapersModel.kt (logika), SkyscrapersScreen.kt (prikaz)
 ```

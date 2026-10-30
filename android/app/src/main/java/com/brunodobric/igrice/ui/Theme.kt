@@ -124,16 +124,25 @@ fun IgriceTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable
 
 // Kartica s brojkom
 
-/** Mala kartica s naslovom i vrijednošću (mine, vrijeme, rekord). */
+/**
+ * Mala kartica s naslovom i vrijednošću (mine, vrijeme, rekord, bodovi).
+ * Istaknuta kartica (igrač na redu) dobiva rub u boji vrijednosti.
+ */
 @Composable
-fun ScoreCard(title: String, value: String, tint: Color, modifier: Modifier = Modifier) {
+fun ScoreCard(
+    title: String,
+    value: String,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    highlighted: Boolean = false,
+) {
     val brand = LocalBrand.current
     val shape = RoundedCornerShape(16.dp)
     Column(
         modifier = modifier
             .heightIn(min = 56.dp)
-            .background(brand.surface, shape)
-            .border(1.dp, brand.line, shape)
+            .background(if (highlighted) brand.surfaceRaised else brand.surface, shape)
+            .border(if (highlighted) 2.dp else 1.dp, if (highlighted) tint else brand.line, shape)
             .clearAndSetSemantics { contentDescription = "$title: $value" },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
