@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.brunodobric.igrice.games.minesweeper.MinesweeperScreen
 import com.brunodobric.igrice.games.skyscrapers.SkyscrapersScreen
 import com.brunodobric.igrice.games.tango.TangoScreen
-import com.brunodobric.igrice.ui.ComingSoon
+import com.brunodobric.igrice.games.tictactoe.TicTacToeScreen
 import com.brunodobric.igrice.ui.LocalBrand
 import com.brunodobric.igrice.ui.RulesSheet
 
@@ -38,7 +38,7 @@ import com.brunodobric.igrice.ui.RulesSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IgriceApp() {
-    var game by rememberSaveable { mutableStateOf(Game.MINESWEEPER) }
+    var game by rememberSaveable { mutableStateOf(Game.TIC_TAC_TOE) }
     var showRules by rememberSaveable { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().background(LocalBrand.current.backgroundBrush)) {
@@ -73,7 +73,7 @@ fun IgriceApp() {
                 Game.MINESWEEPER -> MinesweeperScreen(paused = showRules, modifier = modifier)
                 Game.TANGO -> TangoScreen(paused = showRules, modifier = modifier)
                 Game.SKYSCRAPERS -> SkyscrapersScreen(paused = showRules, modifier = modifier)
-                else -> ComingSoon(game, modifier)
+                Game.TIC_TAC_TOE -> TicTacToeScreen(modifier)
             }
         }
     }
