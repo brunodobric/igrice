@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.brunodobric.igrice.games.minesweeper.MinesweeperScreen
+import com.brunodobric.igrice.games.skyscrapers.SkyscrapersScreen
 import com.brunodobric.igrice.games.tango.TangoScreen
 import com.brunodobric.igrice.ui.ComingSoon
 import com.brunodobric.igrice.ui.LocalBrand
@@ -71,6 +72,7 @@ fun IgriceApp() {
             when (game) {
                 Game.MINESWEEPER -> MinesweeperScreen(paused = showRules, modifier = modifier)
                 Game.TANGO -> TangoScreen(paused = showRules, modifier = modifier)
+                Game.SKYSCRAPERS -> SkyscrapersScreen(paused = showRules, modifier = modifier)
                 else -> ComingSoon(game, modifier)
             }
         }
