@@ -127,10 +127,12 @@ struct SkyscrapersView: View {
 
     private var actions: some View {
         HStack(spacing: 12) {
-            Button("Očisti") { model.clear() }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .frame(maxWidth: .infinity)
+            Button { model.clear() } label: {
+                Text("Očisti")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
 
             Button { startNew() } label: {
                 Image(systemName: "arrow.counterclockwise")

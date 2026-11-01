@@ -59,10 +59,12 @@ struct TicTacToeView: View {
 
     private var actions: some View {
         HStack(spacing: 12) {
-            Button("Resetiraj bodove") { model.resetScores() }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .frame(maxWidth: .infinity)
+            Button { model.resetScores() } label: {
+                Text("Resetiraj bodove")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
 
             Button { model.newGame() } label: {
                 Image(systemName: "arrow.counterclockwise")
