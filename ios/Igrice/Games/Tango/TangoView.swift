@@ -10,15 +10,16 @@ struct TangoView: View {
     private static let saveKey = "tango-progress"
 
     var body: some View {
-        VStack(spacing: 16) {
+        GameLayout {
             scores
+        } board: {
             GeometryReader { geo in
                 board(available: min(geo.size.width, geo.size.height))
                     .frame(width: geo.size.width, height: geo.size.height)
             }
+        } actions: {
             actions
         }
-        .padding(16)
         .sensoryFeedback(.impact, trigger: model.edits)
         .onGameActivityChange { active in
             isActive = active

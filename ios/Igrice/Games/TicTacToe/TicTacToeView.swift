@@ -5,15 +5,16 @@ struct TicTacToeView: View {
     @State private var showResult = false
 
     var body: some View {
-        VStack(spacing: 16) {
+        GameLayout {
             scores
+        } board: {
             GeometryReader { geo in
                 board(side: min(geo.size.width, geo.size.height, 420))
                     .frame(width: geo.size.width, height: geo.size.height)
             }
+        } actions: {
             actions
         }
-        .padding(16)
         .sensoryFeedback(.impact, trigger: model.cells.compactMap { $0 }.count)
         .task(id: model.outcome) {
             guard model.outcome != nil else { showResult = false; return }
