@@ -16,15 +16,16 @@ struct MinesweeperView: View {
     @AppStorage("mines-best-hard") private var bestHard = 0
 
     var body: some View {
-        VStack(spacing: 16) {
+        GameLayout {
             scores
+        } board: {
             GeometryReader { geo in
                 board(available: min(geo.size.width, 560, geo.size.height))
                     .frame(width: geo.size.width, height: geo.size.height)
             }
+        } actions: {
             actions
         }
-        .padding(16)
         .sensoryFeedback(.impact, trigger: model.moves)
         .sensoryFeedback(trigger: model.outcome) { _, outcome in
             switch outcome {
